@@ -56,7 +56,10 @@ const DataBackup = () => {
         try {
             const res = await fetch(
                 `${BASE_URL}/api/data-backup/download/${encodeURIComponent(tableName)}`,
-                { credentials: 'include' }
+                {
+                    credentials: 'include',
+                    headers: { 'x-current-route': 'admin/data-backup' },
+                }
             );
             if (!res.ok) throw new Error(`HTTP ${res.status}`);
 

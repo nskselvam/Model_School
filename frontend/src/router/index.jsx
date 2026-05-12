@@ -10,7 +10,6 @@ import {
 // Eager load critical components
 import Renderpage from "../render/Renderpage.jsx";
 import Protected from "../private/Protected.jsx";
-import IPCheckWrapper from "../private/IPCheckWrapper.jsx";
 import ErrorBoundary from "../components/ErrorBoundary.jsx";
 
 // Lazy load pages
@@ -107,7 +106,6 @@ const LazyRoute = (props) => {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Renderpage />}>
-      <Route element={<IPCheckWrapper />}>
         <Route index element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LazyRoute component={Login} />} />
         <Route element={<Protected />}>
@@ -187,7 +185,6 @@ const router = createBrowserRouter(
             element={<LazyRoute component={ExaminerLoginStatus} />}
           />
         </Route>
-      </Route>
       {/* Catch-all 404 */}
       <Route path="*" element={<LazyRoute component={PagenotFound} />} />
     </Route>,

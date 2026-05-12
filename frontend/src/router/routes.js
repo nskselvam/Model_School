@@ -24,7 +24,6 @@ export const ROUTE_DEFINITIONS = {
   CHIEF_REVIEW: '/valuation/chief-review',
   
   // Utilities
-  IP_CONFIG: '/ip-config',
   ADMIN_WINDOW: '/admin/admin-window',
   SCANNING_VALUATION_DATA: '/admin/scanning-valuation-data',
   
@@ -112,7 +111,6 @@ export const ROUTE_GROUPS = {
   ],
   
   utilities: [
-    ROUTE_DEFINITIONS.IP_CONFIG,
     ROUTE_DEFINITIONS.ADMIN_WINDOW,
     ROUTE_DEFINITIONS.SCANNING_VALUATION_DATA,
   ],

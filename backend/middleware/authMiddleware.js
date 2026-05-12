@@ -58,20 +58,20 @@ const Redisprotect = asyncHandler(async (req, res, next) => {
       let tokendb = null;
       if (redisClient.isConnected()) {
         try {
-          const redisKey = `user:${decoded.Eva_Id}`;
+          const redisKey = `user:${decoded.Email_Id}`;
 
           const redisUserData = await redisClient.hGetAll(redisKey);
           //  console.log('Redis data retrieved for key', redisKey, ':', redisUserData);
 
           if (redisUserData && Object.keys(redisUserData).length > 0) {
             tokendb = {
-              Eva_Id: decoded.Eva_Id,
+              Email_Id: decoded.Email_Id,
               user_Type: parseInt(redisUserData.userRole, 10) || decoded.user_Type,
               token_version: parseInt(redisUserData.token_version, 10) || decoded.token_version
             };
             console.log('Using Redis data for user:', redisUserData.token_version, 'Db token version:', decoded.token_version);
             if(tokendb.token_version !== decoded.token_version) {
-              console.warn(`Token version mismatch for user ${decoded.Eva_Id}. Redis: ${tokendb.token_version}, Token: ${decoded.token_version}`);
+              console.warn(`Token version mismatch for user ${decoded.Email_Id}. Redis: ${tokendb.token_version}, Token: ${decoded.token_version}`);
               return next(new AppError("User not found", 401));
             }
             //  tokendb = redisUserData.token_version !== decoded.token_version
@@ -142,7 +142,7 @@ const protect = asyncHandler(async (req, res, next) => {
 
     if (redisClient.isConnected()) {
       try {
-        const redisKey = `user:${decoded.Eva_Id}`;
+        const redisKey = `user:${decoded.Email_Id}`;
         redisUserData = await redisClient.hGetAll(redisKey);
 
         if (redisUserData && Object.keys(redisUserData).length > 0) {
@@ -154,7 +154,7 @@ const protect = asyncHandler(async (req, res, next) => {
           req.redisUserData = redisUserData;
           tokendb = {
             id: parseInt(redisUserData.id, 10),
-            Email_Id: decoded.Eva_Id,
+            Email_Id: decoded.Email_Id,
             token_version: redisTokenVersion,
             Role: redisUserData.userRole || null,
           };
@@ -167,13 +167,14 @@ const protect = asyncHandler(async (req, res, next) => {
     // ── Step 2: Determine whether nav check is needed ────────────────────────
     const userRole = redisUserData?.userRole || req.query.userRole;
     const isApiRoute      = req.originalUrl.includes('/api/admin/') || req.baseUrl === '/api/admin';
+    const isNavbarRoute   = req.baseUrl === '/api/navbar';
     const isDashboard     = ['admin/dashboard','examiner/valuation-review','state/dashboard','district/dashboard','common/dashboard','candidate/dashboard','state/common/dashboard','district/common/dashboard'].includes(routePath);
     const isAdminRoute    = routePath?.startsWith('admin/navbaradd') || routePath?.startsWith('admin/rollmaster') || routePath?.startsWith('admin/examinerrollupdate');
-    const isUserProfileRoute = ['reset-password','change-password','profile'].includes(routePath);
+    const isUserProfileRoute = ['reset-password','change-password','profile','login'].includes(routePath);
     const isUserRole2Route = (routePath === 'valuation' || routePath === 'examiner/review' || routePath === 'examiner/reviewe/valuationreview') && userRole == 2;
     const isUserRole1Route = (routePath === 'valuation/chief-valuation-review' || routePath === 'valuation/chief-valuation-review-main' || routePath === 'valuation/chief-valuation') && userRole == 1;
     const generalBackup   = routePath === 'admin/data-backup' || routePath === 'admin/admin-window';
-    const shouldSkipNavCheck = isApiRoute || isDashboard || isAdminRoute || isUserProfileRoute || isUserRole2Route || isUserRole1Route || generalBackup;
+    const shouldSkipNavCheck = isApiRoute || isNavbarRoute || isDashboard || isAdminRoute || isUserProfileRoute || isUserRole2Route || isUserRole1Route || generalBackup;
 
     // ── Step 3: DB query only when Redis missed OR nav check needed ───────────
     if (!tokendb || !shouldSkipNavCheck) {

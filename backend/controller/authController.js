@@ -247,11 +247,10 @@ const password_reset = asyncHandler(async (req, res, next) => {
 
 const logout = asyncHandler(async (req, res) => {
   const clientIP = getClientIP(req);
-  token = req.cookies.jwt;
+  const token = req.cookies.jwt;
 
   console.log("Logout request received. Token:", token);
 
-  //return
   try {
     const TokenValue = verifyToken(token);
     const userId = TokenValue.userId;
@@ -282,11 +281,15 @@ const logout = asyncHandler(async (req, res) => {
   }
 
   if (req.session.userid) {
-    const User_Log_Update = await User_Log.create({
-      User_Name: req.session.userid.user_Type,
-      User_Acticity: "Logout",
-      User_Ip: clientIP,
-    });
+    try {
+      await User_Log.create({
+        User_Name: req.session.userid.user_Type,
+        User_Acticity: "Logout",
+        User_Ip: clientIP,
+      });
+    } catch (logErr) {
+      console.error("Error creating logout log entry:", logErr);
+    }
   }
 
   req.session.destroy();
@@ -294,7 +297,6 @@ const logout = asyncHandler(async (req, res) => {
     httpOnly: true,
     expires: new Date(0),
   });
-  res.session = null;
 
   res.status(200).json({ message: "Logged out successfully" });
 });
