@@ -29,9 +29,24 @@ const getRoleNames = (roleIds) => {
 };
 
 const RollexaminerUpdate = () => {
-  const { data: userDataFromApi, error, isLoading, refetch } = useGetAllUserDataQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  const [filterText, setFilterText]   = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage]         = useState(10);
+
+  // Debounce search: wait 400 ms after the user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(filterText);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filterText]);
+
+  const { data: userDataFromApi, isLoading, isFetching, refetch } = useGetAllUserDataQuery(
+    { page: currentPage, limit: perPage, search: searchQuery },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const { data: navbarDataResponse, isLoading: isNavbarLoading } = useGetNavbarDetailsQuery();
   
@@ -39,10 +54,8 @@ const RollexaminerUpdate = () => {
   const [updateRollMaster] = useUpdateRollMasterMutation();
   const [updateRollMasterMapping] = useUpdateRollMasterMappingMutation();
 
-  const [data, setData] = useState([]);
-  const [filterText, setFilterText] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
+  const tableData = userDataFromApi?.data  || [];
+  const totalRows = userDataFromApi?.total || 0;
   const [navbarOptions, setNavbarOptions] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedNavbarIds, setSelectedNavbarIds] = useState([]);
@@ -55,12 +68,7 @@ const RollexaminerUpdate = () => {
   const [showAllLevels, setShowAllLevels] = useState(false);
   const [selectedRoleColumn, setSelectedRoleColumn] = useState('0'); // Default to User_Roll_Admin_0
 
-  // Update data when API data is loaded
-  useEffect(() => {
-    if (userDataFromApi?.data) {
-      setData(userDataFromApi.data);
-    }
-  }, [userDataFromApi]);
+  // Update data when API data is loaded - now handled via tableData/totalRows above
 
   // Process navbar data for select options
   useEffect(() => {
@@ -151,14 +159,7 @@ const RollexaminerUpdate = () => {
     }
   }, [selectedLevel1Header, navbarDataResponse, showAllLevels]);
 
-  // Filter data based on search
-  const filteredData = data.filter(
-    (item) =>
-      (item.FACULTY_NAME?.toLowerCase() || '').includes(filterText.toLowerCase()) ||
-      (item.Email_Id?.toLowerCase() || '').includes(filterText.toLowerCase()) ||
-      (item.Mobile_Number?.toLowerCase() || '').includes(filterText.toLowerCase()) ||
-      (getRoleNames(item.Role)?.toLowerCase() || '').includes(filterText.toLowerCase())
-  );
+  // Filter data based on search - now handled server-side
 
   // Handle Edit User Roll Admin
   const handleEditRollAdmin = (row, roleColumn) => {
@@ -358,7 +359,7 @@ const RollexaminerUpdate = () => {
       
       const result = await updateRollMasterMapping({
         userId: selectedUser.id,
-        evaId: selectedUser.Eva_Id,
+        evaId: selectedUser.Email_Id,
         userRollAdmin: JSON.stringify(navbarIds),
         roleColumn: selectedRoleColumn  // Send which column to update
       }).unwrap();
@@ -421,7 +422,7 @@ const RollexaminerUpdate = () => {
       // Create roll master with all user data
       const response = await updateRollMasterMapping({
 
-        ExaminerRoll: filteredData
+        ExaminerRoll: tableData
       }).unwrap();
       
       toast.success('Successfully updated roll master entries!');
@@ -623,7 +624,7 @@ const RollexaminerUpdate = () => {
               <Button
                 variant="success"
                 onClick={handleUpdateRollMaster}
-                disabled={isUpdatingRollMaster || data.length === 0}
+                disabled={isUpdatingRollMaster || totalRows === 0}
                 className="w-100"
               >
                 {isUpdatingRollMaster ? (
@@ -644,7 +645,7 @@ const RollexaminerUpdate = () => {
             </Col>
           </Row>
 
-          {isLoading || isNavbarLoading ? (
+          {isLoading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
               <p className="mt-3">Loading data...</p>
@@ -652,12 +653,16 @@ const RollexaminerUpdate = () => {
           ) : (
             <DataTable
               columns={columns}
-              data={filteredData}
+              data={tableData}
               pagination
-              paginationPerPage={10}
+              paginationServer
+              paginationTotalRows={totalRows}
+              paginationPerPage={perPage}
               paginationRowsPerPageOptions={[10, 20, 30, 50]}
               onChangePage={(page) => setCurrentPage(page)}
-              onChangeRowsPerPage={(newPerPage) => setPerPage(newPerPage)}
+              onChangeRowsPerPage={(newPerPage, page) => { setPerPage(newPerPage); setCurrentPage(page); }}
+              progressPending={isFetching}
+              progressComponent={<Spinner animation="border" variant="primary" className="my-3" />}
               highlightOnHover
               striped
               responsive
@@ -680,7 +685,7 @@ const RollexaminerUpdate = () => {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title">
                   <i className="bi bi-pencil-square me-2"></i>
-                  Edit Navbar Assignment for {selectedUser.FACULTY_NAME}
+                  Edit Navbar Assignment for {selectedUser.candidateName}
                 </h5>
                 <button
                   type="button"

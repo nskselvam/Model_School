@@ -6,57 +6,45 @@ import * as XLSX from 'xlsx'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
 import navbar from '../../hooks/navbar/navbar.json'
+import { BASE_URL } from '../../constraint/constraint'
 
 const { VITE_Institution_Name, VITE_Institution_No } = import.meta.env;
 
 const UserTemporaryPassword = () => {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(false)
   const [filterText, setFilterText] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
 
   const institutionData = navbar.find(item => item._id === parseInt(VITE_Institution_No))
   const institutionDisplayName = institutionData ? institutionData.InstitutionName : VITE_Institution_Name
 
-  // Query with ResetPass = N filter to get only temporary password users
-  const { data: apiData, isLoading, error, refetch } = useGetExaminerPasswordDetailsQuery(
-    {
-      InstitutionStatus: VITE_Institution_No,
-      ResetPass: 'N', // Filter for temporary password users (N = not reset)
-      PasswordStatus:'2'  
+  // Debounce search: wait 400 ms after the user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(filterText);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filterText]);
 
-
-    }
-  )
+  const { data: apiData, isLoading, isFetching, refetch } = useGetExaminerPasswordDetailsQuery({
+    InstitutionStatus: VITE_Institution_No,
+    ResetPass: 'N',
+    PasswordStatus: '2',
+    page: currentPage,
+    limit: perPage,
+    search: searchQuery,
+  });
 
   const userInfo = useSelector((state) => state.auth.userInfo);
 
-  useEffect(() => {
-    fetchUsers()
-  }, [])
+  const tableData = apiData?.data || [];
+  const totalRows = apiData?.total || 0;
 
-  useEffect(() => {
-    if (apiData && apiData.data) {
-      // Filter for ResetPass = N (temporary password - not reset)
-      const tempPasswordUsers = apiData.data.filter(user => user.ResetPass === 'N')
-      setData(tempPasswordUsers)
-    }
-  }, [apiData])
+  const fetchUsers = () => refetch();
 
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      await refetch()
-    } catch (error) {
-      console.error('Error fetching users:', error)
-      toast.error('Failed to fetch temporary password users')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleExportToExcel = () => {
+  const handleExportToExcel = async () => {
     const now = new Date()
     const dateTime = now.toLocaleString('en-IN', {
       day: '2-digit',
@@ -68,7 +56,18 @@ const UserTemporaryPassword = () => {
       hour12: true
     })
 
-    const exportData = data.map((row, index) => ({
+    // Fetch all matching records for export (no pagination limit)
+    let allData = tableData;
+    try {
+      const qs = new URLSearchParams({ page: 1, limit: 10000, search: searchQuery, InstitutionStatus: VITE_Institution_No, ResetPass: 'N', PasswordStatus: '2' }).toString();
+      const res = await fetch(`${BASE_URL}/api/admin/all_user_data?${qs}`, { credentials: 'include' });
+      const result = await res.json();
+      allData = result.data || tableData;
+    } catch (e) {
+      allData = tableData;
+    }
+
+    const exportData = allData.map((row, index) => ({
       'S.No': index + 1,
       'Candidate Name': row.candidateName,
       'Email ID': row.Email_Id,
@@ -95,7 +94,7 @@ const UserTemporaryPassword = () => {
 
     ws['!rows'] = [{ hpt: 35 }]
 
-    const dataWithHeader = data.map((row, index) => ({
+    const dataWithHeader = allData.map((row, index) => ({
       'S.No': index + 1,
       'Candidate Name': row.candidateName,
       'Email ID': row.Email_Id,
@@ -122,10 +121,7 @@ const UserTemporaryPassword = () => {
     toast.success('Excel file exported successfully!')
   }
 
-  const filteredData = data?.filter(item =>
-    item.candidateName?.toLowerCase().includes(filterText.toLowerCase()) ||
-    item.Email_Id?.toLowerCase().includes(filterText.toLowerCase())
-  )
+  // Filter data based on search - now handled server-side
 
   const columns = [
     {
@@ -241,7 +237,7 @@ const UserTemporaryPassword = () => {
             <i className="bi bi-info-circle-fill me-2"></i>
             <div>
               <strong>Important:</strong> These users have temporary passwords and must reset them on first login. 
-              Total users: <strong>{data.length}</strong>
+              Total users with temporary passwords: <strong>{totalRows}</strong>
             </div>
           </div>
 
@@ -261,7 +257,7 @@ const UserTemporaryPassword = () => {
                 <Button
                   variant="success"
                   onClick={handleExportToExcel}
-                  disabled={loading || data.length === 0}
+                  disabled={isLoading || totalRows === 0}
                 >
                   <i className="bi bi-file-earmark-excel me-2"></i>
                   Export Excel
@@ -269,15 +265,15 @@ const UserTemporaryPassword = () => {
                 <Button
                   variant="primary"
                   onClick={fetchUsers}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? <Spinner animation="border" size="sm" /> : <><i className="bi bi-arrow-clockwise me-2"></i>Refresh</>}
+                  {isFetching ? <Spinner animation="border" size="sm" /> : <><i className="bi bi-arrow-clockwise me-2"></i>Refresh</>}
                 </Button>
               </div>
             </Col>
           </Row>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
               <p className="mt-3">Loading temporary password users...</p>
@@ -285,12 +281,16 @@ const UserTemporaryPassword = () => {
           ) : (
             <DataTable
               columns={columns}
-              data={filteredData}
+              data={tableData}
               pagination
-              paginationPerPage={10}
+              paginationServer
+              paginationTotalRows={totalRows}
+              paginationPerPage={perPage}
               paginationRowsPerPageOptions={[10, 20, 30, 50]}
               onChangePage={(page) => setCurrentPage(page)}
-              onChangeRowsPerPage={(newPerPage) => setPerPage(newPerPage)}
+              onChangeRowsPerPage={(newPerPage, page) => { setPerPage(newPerPage); setCurrentPage(page); }}
+              progressPending={isFetching}
+              progressComponent={<Spinner animation="border" variant="primary" className="my-3" />}
               highlightOnHover
               striped
               responsive

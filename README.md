@@ -1,255 +1,107 @@
-# Examination Onscreen Valuation System
+# Common Structure — Full Stack Web Application
 
-A comprehensive web-based examination and valuation management system with separate backend and frontend components. This system allows for onscreen examination administration, result valuation, and user management.
+A role-based web application with a Node.js/Express backend and a React/Vite frontend.
 
-## Table of Contents
+## Tech Stack
 
-- [Features](#features)
-- [Project Structure](#project-structure)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Running the Application](#running-the-application)
-- [Project Structure Details](#project-structure-details)
-- [Contributing](#contributing)
-
-## Features
-
-- **User Authentication**: Secure login system with JWT token-based authentication
-- **Role-Based Access**: Support for different user roles (Admin, Examiner, Student)
-- **Dashboard**: Role-specific dashboards for different user types
-- **Examination Management**: Tools for managing examinations and questions
-- **Password Reset**: Secure password reset functionality
-- **Question Bank**: Manage and organize examination questions
-- **Real-time Updates**: Redux-based state management for smooth data synchronization
+| Layer     | Technology                                      |
+|-----------|-------------------------------------------------|
+| Backend   | Node.js, Express, Sequelize ORM, PostgreSQL     |
+| Auth      | JWT (HTTP-only cookies), bcrypt, express-session|
+| Cache     | Redis                                           |
+| Frontend  | React 18, Vite, Redux Toolkit, React Router v6  |
+| UI        | Bootstrap 5, React-Toastify                     |
+| Process   | PM2 (production)                                |
 
 ## Project Structure
 
 ```
-Examination_Onscreen_Valuation/
-├── backend/                 # Node.js/Express backend
-│   ├── app.js              # Main application file
-│   ├── package.json        # Backend dependencies
-│   ├── config/             # Configuration files
-│   ├── controller/         # Request handlers
-│   ├── db/                 # Database configuration and models
-│   ├── middleware/         # Express middleware
-│   ├── router/             # API routes
-│   └── utils/              # Utility functions
-└── frontend/               # React/Vite frontend
-    ├── package.json        # Frontend dependencies
-    ├── vite.config.js      # Vite configuration
-    ├── index.html          # HTML entry point
-    └── src/
-        ├── App.jsx         # Main App component
-        ├── main.jsx        # Entry point
-        ├── components/     # Reusable components
-        ├── pages/          # Page components
-        ├── redux-slice/    # Redux slices and API integration
-        ├── router/         # Route configuration
-        ├── hooks/          # Custom React hooks
-        ├── constraint/     # Constants and constraints
-        ├── style/          # Styling files
-        └── private/        # Protected route components
+Common_Structure/
+├── backend/          # Express API server
+│   ├── config/       # DB, Redis config
+│   ├── controller/   # Route handlers
+│   ├── db/           # Sequelize models & migrations
+│   ├── middleware/   # Auth, error handling
+│   ├── router/       # Express routers
+│   └── utils/        # Helpers (JWT, mail, SMS, etc.)
+├── frontend/         # React/Vite SPA
+│   └── src/
+│       ├── components/
+│       ├── pages/
+│       ├── redux-slice/
+│       ├── router/
+│       └── store/
+└── nginx/            # Nginx config (production)
 ```
 
 ## Prerequisites
 
-Before you begin, ensure you have the following installed:
+- Node.js >= 18
+- PostgreSQL >= 14
+- Redis >= 7
 
-- **Node.js** (v14.0 or higher) - [Download](https://nodejs.org/)
-- **npm** (v6.0 or higher) - Comes with Node.js
-- **Git** - [Download](https://git-scm.com/)
-- **Database**: MySQL or PostgreSQL (based on your configuration)
-
-## Installation
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/nskselvam/Examination_Onscreen_Valuation.git
-cd Examination_Onscreen_Valuation
-```
-
-### 2. Backend Setup
-
-Navigate to the backend directory and install dependencies:
-
-```bash
-cd backend
-npm install
-```
-
-#### Configure Environment Variables
-
-Create a `.env` file in the `backend` directory with the following variables:
-
-```env
-# Database Configuration
-DB_HOST=localhost
-DB_USER=your_db_user
-DB_PASSWORD=your_db_password
-DB_NAME=examination_db
-DB_DIALECT=mysql
-
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# JWT Configuration
-JWT_SECRET=your_secret_key_here
-JWT_EXPIRE=7d
-
-# Email Configuration (if applicable)
-EMAIL_HOST=your_email_host
-EMAIL_PORT=587
-EMAIL_USER=your_email
-EMAIL_PASSWORD=your_email_password
-```
-
-#### Database Setup
-
-```bash
-# Run migrations
-npx sequelize-cli db:migrate
-
-# Run seeders (optional)
-npx sequelize-cli db:seed:all
-```
-
-### 3. Frontend Setup
-
-Navigate to the frontend directory and install dependencies:
-
-```bash
-cd ../frontend
-npm install
-```
-
-#### Configure API Endpoint
-
-Update the API endpoint in `src/constraint/constraint.js`:
-
-```javascript
-// Set your backend API URL
-const API_BASE_URL = 'http://localhost:5000/api';
-```
-
-## Running the Application
-
-### Start the Backend Server
-
-```bash
-cd backend
-npm start
-```
-
-The backend server will run on `http://localhost:5000`
-
-### Start the Frontend Development Server
-
-In a new terminal:
-
-```bash
-cd frontend
-npm run dev
-```
-
-The frontend will run on `http://localhost:5173` (or the port shown in your terminal)
-
-## Project Structure Details
+## Setup
 
 ### Backend
 
-- **config/**: Database and application configuration
-- **controller/**: Request handlers and business logic
-  - `authController.js`: Authentication related endpoints
-- **db/**: 
-  - `models/`: Sequelize models for database entities
-  - `migrations/`: Database schema migrations
-  - `seeders/`: Initial data seeders
-- **middleware/**: Custom Express middleware
-  - `errorController.js`: Error handling middleware
-- **router/**: API route definitions
-  - `authRouter.js`: Authentication routes
-- **utils/**: Helper functions
-  - `appError.js`: Custom error class
-  - `catchAsync.js`: Async error handler
-  - `formatDateTime.js`: Date/time formatting utilities
-  - `jwtToken.js`: JWT token operations
+```bash
+cd backend
+npm install
+cp .env.example .env   # fill in DB, JWT, Redis values
+npm start              # nodemon app.js  (dev)
+```
 
 ### Frontend
 
-- **components/**: Reusable React components
-  - `Login/`: Login card and password input components
-  - `Navbar/`: Navigation bar components
-  - `DashboardComponents/`: Dashboard related components
-  - `ResetComponents/`: Password reset components
-- **pages/**: Full page components
-  - `Login/`: Login page
-  - `Dashboard/`: Dashboard pages for different roles
-  - `reset_password/`: Password reset page
-- **redux-slice/**: Redux state management
-  - `authSlice.js`: Authentication state
-  - `authApiSlice.js`: Authentication API calls
-  - `apiSlice.js`: General API configuration
-  - `examApiSlice.js`: Examination API calls
-  - `qbankApiSlice.js`: Question bank API calls
-- **router/**: React Router configuration
-- **hooks/**: Custom React hooks
-  - `useAuth.js`: Authentication hook
-- **constraint/**: Application constants and constraints
-- **style/**: CSS styling files
+```bash
+cd frontend
+npm install
+npm run dev            # Vite dev server on http://localhost:5173
+```
 
-## API Endpoints
+### Environment Variables (backend `.env`)
 
-### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/logout` - User logout
-- `POST /api/auth/reset-password` - Reset password
-- `POST /api/auth/refresh-token` - Refresh JWT token
+```
+APP_PORT=8000
+NODE_ENV=development
+DB_USERNAME=
+DB_PASSWORD=
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_NAME=
+JWT_SECRET=
+SESSION_SECRET=
+CLIENT_URL=http://localhost:5173
+```
 
-## Environment Configuration
+## User Roles
 
-The application uses environment-specific configurations:
+| Role | Value | Default Dashboard              |
+|------|-------|-------------------------------|
+| State Admin | 0 | `/state/common/dashboard` |
+| District Admin | 1 | `/district/common/dashboard` |
+| Candidate | 2 | `/candidate/dashboard` |
+| Zone Admin | 3 | `/zone/common/dashboard` |
 
-- **Development**: `NODE_ENV=development`
-- **Production**: `NODE_ENV=production`
+## API Base
 
-Ensure the appropriate environment variables are set in your `.env` file.
+All API routes are prefixed with `/api`:
 
-## Troubleshooting
+| Router              | Base Path               |
+|---------------------|-------------------------|
+| Auth                | `/api/auth`             |
+| Navbar              | `/api/navbar`           |
+| Dashboard           | `/api/dashboard`        |
+| Admin Operations    | `/api/admin`            |
+| Data Backup         | `/api/data-backup`      |
+| Master Data Update  | `/api/updata_master_data`|
+| General SQL         | `/api/general`          |
+| Admin SQL           | `/api/admin-sql`        |
+| Redis               | `/api/redis`            |
 
-### Backend Issues
+## Production (PM2)
 
-1. **Port already in use**: Change the `PORT` in `.env` file
-2. **Database connection error**: Verify database credentials and ensure database service is running
-3. **Dependencies issue**: Delete `node_modules` and `package-lock.json`, then run `npm install` again
-
-### Frontend Issues
-
-1. **API connection error**: Verify the API endpoint in `constraint.js` matches your backend URL
-2. **Port conflict**: Vite will automatically use a different port if 5173 is occupied
-3. **Redux state issues**: Clear browser cache and reload the application
-
-## Contributing
-
-To contribute to this project:
-
-1. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-2. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-3. Push to the branch (`git push origin feature/AmazingFeature`)
-4. Open a Pull Request
-
-## License
-
-This project is private. Please contact the repository owner for licensing information.
-
-## Support
-
-For issues and questions, please open an issue on the [GitHub repository](https://github.com/nskselvam/Examination_Onscreen_Valuation).
-
----
-
-**Last Updated**: January 2, 2026
-# Common_structure
+```bash
+cd backend
+pm2 start ecosystem.config.js
+```

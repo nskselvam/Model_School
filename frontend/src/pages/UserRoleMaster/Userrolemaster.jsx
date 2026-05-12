@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Card, Button, Badge, Spinner, Form, Row, Col } from 'react-bootstrap';
 import DataTableBase from 'react-data-table-component';
 import UserRoleModal from '../../components/modals/UserRoleModal';
@@ -30,44 +30,39 @@ const getRoleNames = (roleIds) => {
 
 const Userrolemaster = () => {
 
-  const { data: userDataFromApi, error, isLoading, refetch } = useGetAllUserDataQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage, setPerPage]         = useState(10);
+  const [filterText, setFilterText]   = useState('');
+  const [searchQuery, setSearchQuery] = useState('');   // debounced value sent to API
 
+  // Debounce search: wait 400 ms after the user stops typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(filterText);
+      setCurrentPage(1); // reset to first page on new search
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filterText]);
 
+  const { data: userDataFromApi, error, isLoading, isFetching, refetch } = useGetAllUserDataQuery(
+    { page: currentPage, limit: perPage, search: searchQuery },
+    { refetchOnMountOrArgChange: true }
+  );
 
-  const [data, setData] = useState([]);
+  const tableData  = userDataFromApi?.data  || [];
+  const totalRows  = userDataFromApi?.total || 0;
+
   const [showModal, setShowModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
-  const [currentRow, setCurrentRow] = useState({ id: '', Eva_Id: '', FACULTY_NAME: '', Email_Id: '', Mobile_Number: '', Role: '' });
+  const [currentRow, setCurrentRow] = useState({ id: '', candidateName: '', Email_Id: '', Mobile_Number: '', Role: '' });
   const [deleteRow, setDeleteRow] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [filterText, setFilterText] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [perPage, setPerPage] = useState(10);
-
-  // Update data when API data is loaded
-  useEffect(() => {
-    if (userDataFromApi?.data) {
-      setData(userDataFromApi.data);
-    }
-  }, [userDataFromApi]);
-
-  // Filter data based on search
-  const filteredData = data.filter(
-    (item) =>
-      (item.candidateName?.toLowerCase() || '').includes(filterText.toLowerCase()) ||
-      (item.Email_Id?.toLowerCase() || '').includes(filterText.toLowerCase()) ||
-      (getRoleNames(item.Role)?.toLowerCase() || '').includes(filterText.toLowerCase())
-  );
-
-  // Handle Add
   const handleAdd = () => {
     setModalMode('add');
-    setCurrentRow({ id: '', Eva_Id: '', FACULTY_NAME: '', Email_Id: '', Mobile_Number: '', Role: '' });
+    setCurrentRow({ id: '', candidateName: '', Email_Id: '', Mobile_Number: '', Role: '' });
     setShowModal(true);
   };
 
@@ -116,8 +111,6 @@ const Userrolemaster = () => {
     {
       name: 'S.No',
       cell: (row, index) => (currentPage - 1) * perPage + index + 1,
-      sortable: false,
-      width: '70px',
       style: {
         justifyContent: 'center',
       },
@@ -282,12 +275,19 @@ const Userrolemaster = () => {
           ) : (
             <DataTable
               columns={columns}
-              data={filteredData}
+              data={tableData}
               pagination
-              paginationPerPage={10}
+              paginationServer
+              paginationTotalRows={totalRows}
+              paginationPerPage={perPage}
               paginationRowsPerPageOptions={[10, 20, 30, 50]}
               onChangePage={(page) => setCurrentPage(page)}
-              onChangeRowsPerPage={(newPerPage) => setPerPage(newPerPage)}
+              onChangeRowsPerPage={(newPerPage, page) => {
+                setPerPage(newPerPage);
+                setCurrentPage(page);
+              }}
+              progressPending={isFetching}
+              progressComponent={<Spinner animation="border" variant="primary" className="my-3" />}
               highlightOnHover
               striped
               responsive

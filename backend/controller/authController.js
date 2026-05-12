@@ -56,11 +56,6 @@ const loginUser = asyncHandler(async (req, res) => {
   const clientIP = getClientIP(req);
   const { email: username, password } = req.body;
 
-  console.log("Login attempt:", {
-    username,
-    password: password ? "provided" : "not provided",
-  });
-
   // Trim username and password to avoid whitespace issues
   const trimmedUsername = username?.trim();
   const trimmedPassword = password?.trim();
@@ -77,37 +72,20 @@ const loginUser = asyncHandler(async (req, res) => {
     throw new AppError("Invalid credentials", 401);
   }
   
-  console.log("User found:", {
-    id: user_exists.id,
-    email: user_exists.Email_Id,
-    hasPassword: !!user_exists.User_Pass,
-    hasTempPassword: !!user_exists.Temp_Password,
-    ResetPass: user_exists.ResetPass
-  });
-
   // Use Temp_Password if ResetPass='N' (needs reset), otherwise use User_Pass
   const needsReset = user_exists.ResetPass === 'N';
   const passwordToCheck = needsReset ? user_exists.Temp_Password : user_exists.User_Pass;
   
-  console.log("Checking password against:", needsReset ? "Temp_Password" : "User_Pass");
-  console.log("Password field value (first 20 chars):", passwordToCheck?.substring(0, 20));
-  console.log("Entered password (first 5 chars):", trimmedPassword?.substring(0, 5));
-  console.log("Is bcrypt hash?", passwordToCheck?.startsWith('$2'));
-
   let isPasswordValid;
   
   if (needsReset) {
     // Temp_Password is stored as plain text - direct comparison
     isPasswordValid = trimmedPassword === passwordToCheck;
-    console.log("Using plain text comparison for Temp_Password");
   } else {
     // User_Pass is hashed - use bcrypt
     isPasswordValid = await bcrypt.compare(trimmedPassword, passwordToCheck);
-    console.log("Using bcrypt comparison for User_Pass");
   }
-  
-  console.log("Password validation result:", isPasswordValid);
-  
+
   if (!isPasswordValid) {
     throw new AppError("Invalid credentials", 401);
   }
@@ -119,7 +97,7 @@ const loginUser = asyncHandler(async (req, res) => {
       id: user_exists.id,
       Examiner_id: user_exists.Email_Id,
       Dep_Name: user_exists.DCODE,
-      FACULTY_NAME: user_exists.candidateName,
+      candidateName: user_exists.candidateName,
     });
     return;
   }
@@ -133,6 +111,27 @@ const loginUser = asyncHandler(async (req, res) => {
     user_exists.token_version,
     user_exists.Email_Id,
   );
+
+  // Store key user fields in Redis for fast lookup
+  if (redisClient.isConnected()) {
+    try {
+      const redisKey = `user:${user_exists.Email_Id}`;
+      const redisData = {
+        id: String(user_exists.id),
+        Email_Id: String(user_exists.Email_Id),
+        ...(user_exists.DCODE !== undefined && user_exists.DCODE !== null && { DCODE: String(user_exists.DCODE) }),
+        ...(user_exists.SUB_CEN !== undefined && user_exists.SUB_CEN !== null && { SUB_CEN: String(user_exists.SUB_CEN) }),
+        token_version: String(user_exists.token_version),
+        userRole: String(user_exists.Role),
+        updatedAt: new Date().toISOString(),
+      };
+      await redisClient.hSet(redisKey, redisData);
+      await redisClient.expire(redisKey, 14400); // 4 hours
+    } catch (redisErr) {
+      console.warn('⚠ Could not store session in Redis:', redisErr.message);
+      // Non-fatal — continue with login
+    }
+  }
 
   req.session.userid = {
     id: user_exists.id,
@@ -149,8 +148,6 @@ const loginUser = asyncHandler(async (req, res) => {
     User_Acticity: "Login",
     User_Ip: clientIP,
   });
-
-  console.log("User logged ", user_exists);
 
   if (user_exists.Role == "2") {
     res.status(200).json({

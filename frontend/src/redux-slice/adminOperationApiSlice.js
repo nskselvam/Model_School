@@ -2,9 +2,10 @@ import { apiSlice } from "./apiSlice";
 export const adminOperationApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllUserData: builder.query({
-      query: () => ({
+      query: ({ page = 1, limit = 10, search = '' } = {}) => ({
         url: `/api/admin/all_user_data`,
         method: "GET",
+        params: { page, limit, search },
       }),
       providesTags: ['UserData'],
     }),

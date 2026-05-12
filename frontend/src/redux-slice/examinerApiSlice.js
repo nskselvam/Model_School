@@ -4,10 +4,10 @@ export const valuationApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
 
         getExaminerResetPassword: builder.query({
-            query: (data) => ({
+            query: ({ page = 1, limit = 10, search = '', ...rest } = {}) => ({
                 url: `/api/admin/all_user_data`,
                 method: "GET",
-                params: data,
+                params: { page, limit, search, ...rest },
             }),
         }),
         resetExaminerPassword: builder.mutation({
@@ -18,10 +18,10 @@ export const valuationApiSlice = apiSlice.injectEndpoints({
             }),
         }),
         getExaminerPasswordDetails: builder.query({
-            query: (data) => ({
+            query: ({ page = 1, limit = 10, search = '', ...rest } = {}) => ({
                 url: `/api/admin/all_user_data`,
                 method: "GET",
-                params: data,
+                params: { page, limit, search, ...rest },
             }),
         }),
 
@@ -33,12 +33,11 @@ export const valuationApiSlice = apiSlice.injectEndpoints({
             }),
         }),
         getExaminerUserDetails: builder.query({
-            query: (data) => ({
+            query: ({ page = 1, limit = 10, search = '', ...rest } = {}) => ({
                 url: `/api/admin/all_user_data`,
                 method: "GET",
-                params: data,
+                params: { page, limit, search, ...rest },
             }),
-
         }),
         getExaminerLoginStatus: builder.query({
             query: (data) => ({

@@ -8,13 +8,37 @@ const generatePasword = require("../utils/passwordGenerate");
 
 
 const getAllUserData = asyncHandler(async (req, res) => {
-    const faculties_Data = await User_Details.findAll();
-    if (!faculties_Data) {
-        throw new AppError('No user data found', 404);
+    const page      = Math.max(1, parseInt(req.query.page)  || 1);
+    const limit     = Math.min(100, Math.max(1, parseInt(req.query.limit) || 10));
+    const search    = (req.query.search || '').trim();
+    const resetPass = req.query.ResetPass;
+    const offset    = (page - 1) * limit;
+
+    const whereClause = {};
+    if (search) {
+        whereClause[Op.or] = [
+            { candidateName: { [Op.iLike]: `%${search}%` } },
+            { Email_Id:      { [Op.iLike]: `%${search}%` } },
+            { Rollno:        { [Op.iLike]: `%${search}%` } },
+        ];
     }
+    if (resetPass !== undefined && resetPass !== '') {
+        whereClause.ResetPass = resetPass;
+    }
+
+    const { count, rows } = await User_Details.findAndCountAll({
+        where: whereClause,
+        limit,
+        offset,
+        order: [['candidateName', 'ASC']],
+    });
+
     res.status(200).json({
         status: 'success',
-        data: faculties_Data,
+        data:  rows,
+        total: count,
+        page,
+        limit,
     });
 })
 
@@ -425,8 +449,6 @@ const addUpdateSubjectData = asyncHandler(async (req, res) => {
 const updateGeneralBioData = asyncHandler(async (req, res) => {
 
     const {
-        Eva_Id,
-        FACULTY_NAME,
         candidateName,
         Email_Id,
         Mobile_Number,
@@ -435,17 +457,11 @@ const updateGeneralBioData = asyncHandler(async (req, res) => {
         id,
     } = req.body;
     
-    console.log('Update request received:', req.body);
-    
     const user = await User_Details.findByPk(id);
     if (!user) {
         throw new AppError('User not found', 404);
     }
     
-    // Update fields - support both FACULTY_NAME and candidateName
-    if (FACULTY_NAME !== undefined) {
-        user.FACULTY_NAME = FACULTY_NAME;
-    }
     if (candidateName !== undefined) {
         user.candidateName = candidateName;
     }
@@ -467,8 +483,6 @@ const updateGeneralBioData = asyncHandler(async (req, res) => {
     
     await user.save();
     
-    console.log('User updated successfully:', user.id);
-
     res.status(200).json({
         status: 'success',
         message: 'General bio data updated successfully',
@@ -516,14 +530,14 @@ const updateFacultyRawFields = asyncHandler(async (req, res) => {
 
     res.status(200).json({
         status: 'success',
-        message: 'Faculty fields updated successfully',
+        message: 'User fields updated successfully',
     });
 });
 
 const getAllUserRollData = asyncHandler(async (req, res) => {
 
     // Fetch user data with only necessary fields for role allocation
-    const AllFacultyData = await User_Details.findAll({
+    const allUserData = await User_Details.findAll({
         attributes: [
             'id',
             'Rollno',
@@ -559,7 +573,7 @@ const getAllUserRollData = asyncHandler(async (req, res) => {
         status: 'success',
         data_header: MainHeaderData,
         data_complete: NavbarDataDetails,
-        FacultyDetails: AllFacultyData
+        UserDetails: allUserData
     });
 });
 

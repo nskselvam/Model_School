@@ -65,8 +65,8 @@ const AssignExaminerModal = ({
         
         const assignmentData = {
             ...formData,
-            userId: userData?.Eva_Id,
-            userName: userData?.FACULTY_NAME,
+            userId: userData?.Email_Id,
+            userName: userData?.candidateName,
         };
         
         onAssign(assignmentData);
@@ -96,8 +96,8 @@ const AssignExaminerModal = ({
                 {userData && (
                     <div className="mb-3" style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '4px' }}>
                         <h6 style={{ marginBottom: '10px', color: '#495057' }}>Examiner Details</h6>
-                        <p style={{ margin: '5px 0' }}><strong>User ID:</strong> {userData.Eva_Id}</p>
-                        <p style={{ margin: '5px 0' }}><strong>Name:</strong> {userData.FACULTY_NAME}</p>
+                        <p style={{ margin: '5px 0' }}><strong>User ID:</strong> {userData.Email_Id}</p>
+                        <p style={{ margin: '5px 0' }}><strong>Name:</strong> {userData.candidateName}</p>
                         {userData.Email_Id && <p style={{ margin: '5px 0' }}><strong>Email:</strong> {userData.Email_Id}</p>}
                     </div>
                 )}

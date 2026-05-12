@@ -6,23 +6,20 @@ import * as XLSX from 'xlsx'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux'
 import navbar from '../../hooks/navbar/navbar.json'
-import { use } from 'react'
+import { BASE_URL } from '../../constraint/constraint'
 const { VITE_Institution_Name, VITE_Institution_No } = import.meta.env;
 
 
 const UserPassword = () => {
-  const [data, setData] = useState([])
-  const [loading, setLoading] = useState(false)
   const [sendingEmail, setSendingEmail] = useState(false)
   const [filterText, setFilterText] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [showEmailModal, setShowEmailModal] = useState(false)
 
   const institutionData = navbar.find(item => item._id === parseInt(VITE_Institution_No))
   const institutionDisplayName = institutionData ? institutionData.InstitutionName : VITE_Institution_Name
-  
-  console.log('Institution Data:', institutionData, 'Display Name:', institutionDisplayName)
 
   const [emailFormData, setEmailFormData] = useState({
     mailSubject: 'APRIL 2025 Terminal Examinations - Phase 2 - Digital Valuation - Appointment Order - Reg.',
@@ -30,38 +27,31 @@ const UserPassword = () => {
     referenceNo: `No. COE / Phase 2 / Digital Valuation`,
     InstitutionName: institutionDisplayName
   })
-    const { data: apiData, isLoading, error ,refetch} = useGetExaminerPasswordDetailsQuery(
-      {
-        InstitutionStatus : VITE_Institution_No,
-        PasswordStatus:'1'
-      }
-    )
-    const [sendExaminerPassword, { refetch: refetchSend }] = useSendExaminerPasswordMutation()
-    const [institutionStatus, setInstitutionStatus] = useState(VITE_Institution_No)
-    const userInfo = useSelector((state) => state.auth.userInfo);
 
-
-  // Fetch user data - replace with actual API call
+  // Debounce search: wait 400 ms after the user stops typing
   useEffect(() => {
-    fetchUsers()
-  }, [])
+    const timer = setTimeout(() => {
+      setSearchQuery(filterText);
+      setCurrentPage(1);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [filterText]);
 
-    useEffect(() => {
-        if (apiData && apiData.data) {
-            setData(apiData.data)
-        }
-    }, [apiData])
+  const { data: apiData, isLoading, isFetching, refetch } = useGetExaminerPasswordDetailsQuery({
+    InstitutionStatus: VITE_Institution_No,
+    PasswordStatus: '1',
+    page: currentPage,
+    limit: perPage,
+    search: searchQuery,
+  });
+  const [sendExaminerPassword] = useSendExaminerPasswordMutation()
+  const [institutionStatus, setInstitutionStatus] = useState(VITE_Institution_No)
+  const userInfo = useSelector((state) => state.auth.userInfo);
 
-  const fetchUsers = async () => {
-    setLoading(true)
-    try {
-      await refetch()
-    } catch (error) {
-      console.error('Error fetching users:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const tableData = apiData?.data || [];
+  const totalRows = apiData?.total || 0;
+
+  const fetchUsers = () => refetch();
 
   const handleSendAllEmails = () => {
     // If institutionStatus is not 1, show modal first for email details
@@ -148,7 +138,7 @@ const UserPassword = () => {
       })
   }
 
-  const handleExportToExcel = () => {
+  const handleExportToExcel = async () => {
     // Get current date and time
     const now = new Date()
     const dateTime = now.toLocaleString('en-IN', { 
@@ -161,8 +151,19 @@ const UserPassword = () => {
       hour12: true
     })
     
+    // Fetch all matching records for export (no pagination limit)
+    let allData = tableData;
+    try {
+      const qs = new URLSearchParams({ page: 1, limit: 10000, search: searchQuery, InstitutionStatus: VITE_Institution_No, PasswordStatus: '1' }).toString();
+      const res = await fetch(`${BASE_URL}/api/admin/all_user_data?${qs}`, { credentials: 'include' });
+      const result = await res.json();
+      allData = result.data || tableData;
+    } catch (e) {
+      allData = tableData;
+    }
+
     // Prepare data for export
-    const exportData = data.map((row, index) => ({
+    const exportData = allData.map((row, index) => ({
       'S.No': index + 1,
       'Candidate Name': row.candidateName,
       'Email ID': row.Email_Id,
@@ -194,7 +195,7 @@ const UserPassword = () => {
     ws['!rows'] = [{ hpt: 35 }]
 
     // Add data starting from row 3
-    const dataWithHeader = data.map((row, index) => ({
+    const dataWithHeader = allData.map((row, index) => ({
       'S.No': index + 1,
       'Candidate Name': row.candidateName,
       'Email ID': row.Email_Id,
@@ -259,11 +260,7 @@ const UserPassword = () => {
     return statusColors[status] || { bg: 'secondary', text: 'white' }
   }
 
-  // Filter data based on search
-  const filteredData = data?.filter(item => 
-    item.candidateName?.toLowerCase().includes(filterText.toLowerCase()) ||
-    item.Email_Id?.toLowerCase().includes(filterText.toLowerCase())
-  )
+  // Filter data based on search - now handled server-side
 
   const columns = [
     {
@@ -395,7 +392,7 @@ const UserPassword = () => {
           variant="success"
           size="lg"
           onClick={handleSendAllEmails}
-          disabled={sendingEmail || loading}
+          disabled={sendingEmail || isFetching}
         >
           {sendingEmail ? (
             <>
@@ -435,7 +432,7 @@ const UserPassword = () => {
                 <Button
                   variant="info"
                   onClick={handleExportToExcel}
-                  disabled={loading || data.length === 0}
+                  disabled={isLoading || totalRows === 0}
                 >
                   <i className="bi bi-file-earmark-excel me-2"></i>
                   Export Excel
@@ -443,15 +440,15 @@ const UserPassword = () => {
                 <Button
                   variant="primary"
                   onClick={fetchUsers}
-                  disabled={loading}
+                  disabled={isLoading}
                 >
-                  {loading ? <Spinner animation="border" size="sm" /> : 'Refresh'}
+                  {isFetching ? <Spinner animation="border" size="sm" /> : 'Refresh'}
                 </Button>
               </div>
             </Col>
           </Row>
 
-          {loading ? (
+          {isLoading ? (
             <div className="text-center py-5">
               <Spinner animation="border" variant="primary" />
               <p className="mt-3">Loading users...</p>
@@ -459,12 +456,16 @@ const UserPassword = () => {
           ) : (
             <DataTable
               columns={columns}
-              data={filteredData}
+              data={tableData}
               pagination
-              paginationPerPage={10}
+              paginationServer
+              paginationTotalRows={totalRows}
+              paginationPerPage={perPage}
               paginationRowsPerPageOptions={[10, 20, 30, 50]}
               onChangePage={(page) => setCurrentPage(page)}
-              onChangeRowsPerPage={(newPerPage) => setPerPage(newPerPage)}
+              onChangeRowsPerPage={(newPerPage, page) => { setPerPage(newPerPage); setCurrentPage(page); }}
+              progressPending={isFetching}
+              progressComponent={<Spinner animation="border" variant="primary" className="my-3" />}
               highlightOnHover
               striped
               responsive

@@ -66,12 +66,12 @@ const DeleteUserModal = ({
                 {userData && (
                     <div>
                         <div className="mb-3" style={{ backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #dee2e6' }}>
-                            <p style={{ margin: '5px 0', fontSize: '14px' }}><strong>Name:</strong> {userData.candidateName || userData.FACULTY_NAME}</p>
+                            <p style={{ margin: '5px 0', fontSize: '14px' }}><strong>Name:</strong> {userData.candidateName}</p>
                             <p style={{ margin: '5px 0', fontSize: '14px' }}><strong>Email:</strong> {userData.Email_Id}</p>
                         </div>
 
                         <div className="alert alert-warning" style={{ marginTop: '15px', borderLeft: '4px solid #ff9800' }}>
-                            <strong>⚠️ Warning:</strong> This will permanently delete the user "<strong>{userData.candidateName || userData.FACULTY_NAME}</strong>" and all associated data.
+                            <strong>⚠️ Warning:</strong> This will permanently delete the user "<strong>{userData.candidateName}</strong>" and all associated data.
                         </div>
                     </div>
                 )}

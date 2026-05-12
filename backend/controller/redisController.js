@@ -41,6 +41,9 @@ const updateRoleDegree = asyncHandler(async (req, res) => {
       Eva_Id,
       ...(dbUser.token_version !== undefined && { token_version: String(dbUser.token_version) }),
       ...(dbUser.id !== undefined && { id: String(dbUser.id) }),
+      ...(dbUser.Email_Id !== undefined && { Email_Id: String(dbUser.Email_Id) }),
+      ...(dbUser.DCODE !== undefined && dbUser.DCODE !== null && { DCODE: String(dbUser.DCODE) }),
+      ...(dbUser.SUB_CEN !== undefined && dbUser.SUB_CEN !== null && { SUB_CEN: String(dbUser.SUB_CEN) }),
       ...(dbUser.Role !== undefined && { userRole: String(dbUser.Role) }),
       updatedAt: new Date().toISOString()
     };

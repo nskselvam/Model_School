@@ -34,10 +34,6 @@ const ExaminerLoginStatus = () => {
   const loginStats = data?.data || {}
   const users = Array.isArray(loginStats) ? loginStats : (loginStats.users || [])
 
-  console.log('API Response:', data)
-  console.log('Login Stats:', loginStats)
-  console.log('Users:', users)
-
   // Calculate statistics from users data if not provided
   const calculateStats = () => {
     if (!Array.isArray(users) || users.length === 0) {

@@ -8,7 +8,7 @@ import Select from 'react-select';
 import './Userollmaster.css';
 
 const Userollmaster = () => {
-  const [navbarData, setNavbarData] = useState({ data_header: [], data_complete: [], FacultyDetails: [] });
+  const [navbarData, setNavbarData] = useState({ data_header: [], data_complete: [], UserDetails: [] });
   const [isLoading, setIsLoading] = useState(false);
   const [selectedMainHeader, setSelectedMainHeader] = useState('');
   const [filteredSubHeaders, setFilteredSubHeaders] = useState([]);
@@ -29,11 +29,11 @@ const Userollmaster = () => {
       initializeUserRoles(navbarDataResponse.data_complete);
       
       // Format faculty data for react-select
-      if (navbarDataResponse.FacultyDetails) {
-        const options = navbarDataResponse.FacultyDetails.map(faculty => ({
-          value: faculty.id,
-          label: `${faculty.Eva_Id} - ${faculty.FACULTY_NAME}`,
-          faculty: faculty
+      if (navbarDataResponse.UserDetails) {
+        const options = navbarDataResponse.UserDetails.map(user => ({
+          value: user.id,
+          label: `${user.Email_Id} - ${user.candidateName}`,
+          faculty: user
         }));
         setFacultyOptions(options);
       }
@@ -180,7 +180,7 @@ const Userollmaster = () => {
     if (!facultySearchTerm) return facultyOptions;
     return facultyOptions.filter(faculty =>
       faculty.label.toLowerCase().includes(facultySearchTerm.toLowerCase()) ||
-      faculty.faculty.Eva_Id.toLowerCase().includes(facultySearchTerm.toLowerCase())
+      faculty.faculty.Email_Id.toLowerCase().includes(facultySearchTerm.toLowerCase())
     );
   };
 
@@ -310,7 +310,7 @@ const Userollmaster = () => {
                             id={`faculty-${faculty.value}`}
                             label={
                               <div className="faculty-checkbox-label">
-                                <strong>{faculty.faculty.Eva_Id}</strong> - {faculty.faculty.FACULTY_NAME}
+                                <strong>{faculty.faculty.Email_Id}</strong> - {faculty.faculty.candidateName}
                                 <div className="faculty-details">
                                   <small className="text-muted">
                                     {faculty.faculty.Email_Id && <span><i className="bi bi-envelope me-1"></i>{faculty.faculty.Email_Id}</span>}

@@ -58,7 +58,7 @@ const Login = () => {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
   
   // Handle form submission
-  const onSubmit = async ({ email, password, remember }) => {
+  const onSubmit = async ({ email, password }) => {
 
     setError(null)
     try {
@@ -67,9 +67,6 @@ const Login = () => {
       const userData = {
         ...response,
       }
-
-      console.log("Login response:", userData);
-
 
       // user_status = 0: Password reset required (temporary password)
       if (userData.user_status == 0) {

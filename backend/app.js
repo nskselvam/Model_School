@@ -4,7 +4,6 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require("./middleware/errorController");
 const authRouter = require('./router/authRouter');

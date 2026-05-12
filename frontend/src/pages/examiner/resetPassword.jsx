@@ -10,55 +10,36 @@ const { VITE_Institution_No } = import.meta.env;
 
 
 const ResetPassword = () => {
-    const [data, setData] = useState([])
-    const [loading, setLoading] = useState(false)
     const [filterText, setFilterText] = useState('')
+    const [searchQuery, setSearchQuery] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
     const [perPage, setPerPage] = useState(10)
 
-        const { userInfo } = useSelector((state) => state.auth);
-    
+    const { userInfo } = useSelector((state) => state.auth);
+
+    // Debounce search: wait 400 ms after the user stops typing
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setSearchQuery(filterText);
+            setCurrentPage(1);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [filterText]);
 
     const [resetExaminerPassword] = useResetExaminerPasswordMutation();
     
-    const { data: resetPasswordData, isLoading, isError, error, refetch } = useGetExaminerResetPasswordQuery(
-        {
-            Dep_Name: userInfo?.selected_course || '',
-            Eva_Mon_Year: userInfo?.eva_month_year || '',
-       
-        }
-    );
-   
+    const { data: resetPasswordData, isLoading, isFetching, refetch } = useGetExaminerResetPasswordQuery({
+        Dep_Name: userInfo?.selected_course || '',
+        Eva_Mon_Year: userInfo?.eva_month_year || '',
+        page: currentPage,
+        limit: perPage,
+        search: searchQuery,
+    });
 
-    // Sync API data with local state
-    useEffect(() => {
-        if (isLoading) {
-            setLoading(true);
-        } else {
-            if (resetPasswordData?.data && Array.isArray(resetPasswordData.data)) {
-                setData(resetPasswordData.data);
-            } else if (resetPasswordData && Array.isArray(resetPasswordData)) {
-                setData(resetPasswordData);
-            } else {
-                setData([]);
-            }
-            setLoading(false);
-        }
-    }, [resetPasswordData, isLoading]);
+    const tableData = resetPasswordData?.data || [];
+    const totalRows = resetPasswordData?.total || 0;
 
-    const fetchUsers = async () => {
-        setLoading(true)
-        try {
-            const result = await refetch()
-            if (result.error) {
-                console.error('Error refetching data:', result.error.status, result.error.data)
-            }
-        } catch (error) {
-            console.error('Error refetching data:', error?.message || 'Unknown error')
-        } finally {
-            setLoading(false)
-        }
-    }
+    const fetchUsers = () => refetch();
 
     const handlePasswordReset = (row) => {
         const passwordResetData = {
@@ -93,15 +74,7 @@ const ResetPassword = () => {
         return roleColors[role] || { bg: 'secondary', text: 'white' }
     }
 
-    // Filter data based on search
-    const filteredData = (Array.isArray(data) ? data : []).filter(item =>
-        item.Rollno?.toLowerCase().includes(filterText.toLowerCase()) ||
-        item.candidateName?.toLowerCase().includes(filterText.toLowerCase()) ||
-        String(item.Role)?.toLowerCase().includes(filterText.toLowerCase()) ||
-        item.Email_Id?.toLowerCase().includes(filterText.toLowerCase()) ||
-        item.id?.toString().includes(filterText) ||
-        item.updatedAt?.toLowerCase().includes(filterText.toLowerCase())
-    )
+    // Filter data based on search - now handled server-side
 
     const columns = [
         {
@@ -269,14 +242,14 @@ const ResetPassword = () => {
                             <Button
                                 variant="primary"
                                 onClick={fetchUsers}
-                                disabled={loading}
+                                disabled={isFetching}
                             >
-                                {loading ? <Spinner animation="border" size="sm" /> : 'Refresh'}
+                                {isFetching ? <Spinner animation="border" size="sm" /> : 'Refresh'}
                             </Button>
                         </Col>
                     </Row>
 
-                    {(loading || isLoading) ? (
+                    {isLoading ? (
                         <div className="text-center py-5">
                             <Spinner animation="border" variant="primary" />
                             <p className="mt-3">Loading users...</p>
@@ -284,12 +257,16 @@ const ResetPassword = () => {
                     ) : (
                         <DataTable
                             columns={columns}
-                            data={filteredData}
+                            data={tableData}
                             pagination
-                            paginationPerPage={10}
+                            paginationServer
+                            paginationTotalRows={totalRows}
+                            paginationPerPage={perPage}
                             paginationRowsPerPageOptions={[10, 20, 30, 50]}
                             onChangePage={(page) => setCurrentPage(page)}
-                            onChangeRowsPerPage={(newPerPage) => setPerPage(newPerPage)}
+                            onChangeRowsPerPage={(newPerPage, page) => { setPerPage(newPerPage); setCurrentPage(page); }}
+                            progressPending={isFetching}
+                            progressComponent={<Spinner animation="border" variant="primary" className="my-3" />}
                             highlightOnHover
                             striped
                             responsive
