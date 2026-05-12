@@ -91,6 +91,12 @@ app.use(globalErrorHandler);
 // });
 
 const server = app.listen(port, () => {
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`✅ Server running on port ${port}`);
+  console.log(`🌐 API base URL : http://localhost:${port}/api`);
+  console.log(`🛡  Environment  : ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🗄  Database     : ${process.env.DB_NAME || 'N/A'} @ ${process.env.DB_HOST || 'localhost'}`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 });
 
 // Allow long-running requests (large Excel uploads / batch DB checks)
