@@ -1045,11 +1045,7 @@ const { ExaminerRoll } = req.body;
 
 // Reset User Password - Admin can reset any user's password
 const resetUserPassword = asyncHandler(async (req, res) => {
-    console.error('========================================');
-    console.error('🔴 RESET PASSWORD FUNCTION CALLED');
-    console.error('========================================');
     const { id } = req.body;
-    console.error('User ID from request:', id);
 
     if (!id) {
         throw new AppError('User ID is required', 400);
@@ -1070,24 +1066,12 @@ const resetUserPassword = asyncHandler(async (req, res) => {
     const newPassword = generatePasword();
     const hashedPassword = await bcrypt.hash(newPassword, bcrypt.genSaltSync(10));
 
-    console.error('🔄 BEFORE UPDATE - User ID:', user.id, 'Old Temp_Password:', user.Temp_Password);
-    console.error('🔄 Old ResetPass:', user.ResetPass, 'Old Login_Status:', user.Login_Status, 'Old Mailer:', user.Mailer);
-    
     // Update user password
     user.User_Pass = hashedPassword;
     user.Temp_Password = newPassword;
     user.ResetPass = 'N'; // Mark as temporary password - user must change on login (N = not reset)
     
-    console.error('💾 ABOUT TO SAVE - User ID:', user.id);
-    console.error('💾 New Temp_Password:', newPassword);
-    console.error('💾 New ResetPass:', 'N');
-    console.error('💾 Hashed Password length:', hashedPassword.length);
-    
     await user.save();
-    
-    console.error('✅ SAVE COMPLETED');
-    console.error('✅ Temp_Password after save:', user.Temp_Password);
-    console.error('✅ ResetPass after save:', user.ResetPass);
 
     // Send email with new password
     let emailStatus = 'Not sent';
@@ -1121,29 +1105,13 @@ const resetUserPassword = asyncHandler(async (req, res) => {
             // Update Mailer field to 'Y' (email sent)
             user.Mailer = 'Y';
             await user.save();
-            console.error('✅ Email sent successfully to:', user.Email_Id, '- Mailer updated to Y');
         } else {
             emailStatus = 'Failed';
-            console.error('❌ Email sending failed:', result.error);
         }
     } catch (emailError) {
         console.error('Email sending error:', emailError);
         emailStatus = 'Failed';
     }
-
-    // Verify database state after save
-    const verifyUser = await User_Details.findByPk(id);
-    console.error('========================================');
-    console.error('🔍 DATABASE VERIFICATION QUERY');
-    console.error('========================================');
-    console.error('User ID:', verifyUser.id);
-    console.error('Temp_Password from DB:', verifyUser.Temp_Password);
-    console.error('Expected Temp_Password:', newPassword);
-    console.error('MATCH:', verifyUser.Temp_Password === newPassword ? '✅ YES' : '❌ NO');
-    console.error('ResetPass from DB:', verifyUser.ResetPass);
-    console.error('Mailer from DB:', verifyUser.Mailer);
-    console.error('Login_Status from DB:', verifyUser.Login_Status);
-    console.error('========================================');
 
     res.status(200).json({
         status: 'success',
@@ -1153,25 +1121,18 @@ const resetUserPassword = asyncHandler(async (req, res) => {
             candidateName: user.candidateName,
             email: user.Email_Id,
             emailStatus: emailStatus,
-            newPassword: newPassword // Only for admin reference
         }
     });
 });
 
 // Reset All Login Status - Admin function to clean up stuck Login_Status='Y'
 const resetAllLoginStatus = asyncHandler(async (req, res) => {
-    console.error('========================================');
-    console.error('🔄 RESET ALL LOGIN STATUS CALLED');
-    console.error('========================================');
-    
     // Count users currently showing as logged in
     const beforeCount = await User_Details.count({
         where: {
             Login_Status: 'Y'
         }
     });
-    
-    console.error('Users currently marked as logged in:', beforeCount);
     
     // Update all users to Login_Status='N'
     const result = await User_Details.update(
@@ -1184,9 +1145,6 @@ const resetAllLoginStatus = asyncHandler(async (req, res) => {
     );
     
     const updatedCount = result[0]; // Number of rows updated
-    
-    console.error('✅ Updated', updatedCount, 'users to Login_Status=N');
-    console.error('========================================');
     
     res.status(200).json({
         status: 'success',

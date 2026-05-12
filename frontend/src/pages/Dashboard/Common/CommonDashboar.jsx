@@ -54,7 +54,7 @@ const CommonDashboar = () => {
 
 
   const handleUserSelect = useCallback(() => {
-    updateRoleDegree({ Eva_Id: userExaminer?.username,   userRole: user, degreeCode: course })
+    updateRoleDegree({ Email_Id: userExaminer?.username, userRole: user, degreeCode: course })
       .unwrap()
       .then(() => {
         toast.success('User role and course updated successfully');

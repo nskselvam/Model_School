@@ -222,9 +222,6 @@ const password_reset = asyncHandler(async (req, res, next) => {
     },
   });
   
-  console.log("Password reset attempt for:", username);
-  console.log("User found for reset:", !!result);
-  
   if (!result) {
     return next(new AppError("Incorrect email or invalid password status", 401));
   }
@@ -232,8 +229,6 @@ const password_reset = asyncHandler(async (req, res, next) => {
   result.User_Pass = bcrypt.hashSync(password, 10);
   result.ResetPass = 'Y';
   const result_updated = await result.save();
-  
-  console.log("Password reset successful for user:", result_updated.id);
   
   res.status(200).json({
     Message: "Password Reset Successfully",
@@ -246,8 +241,6 @@ const logout = asyncHandler(async (req, res) => {
   const clientIP = getClientIP(req);
   const token = req.cookies.jwt;
 
-  console.log("Logout request received. Token:", token);
-
   try {
     const TokenValue = verifyToken(token);
     const userId = TokenValue.userId;
@@ -258,14 +251,11 @@ const logout = asyncHandler(async (req, res) => {
       // Set Login_Status to 'N' on logout
       user.Login_Status = 'N';
       await user.save();
-      console.log(`User ${user.id} (${user.Email_Id}) logged out - Login_Status set to N`);
-      
       // Clear Redis data for this user
       if (redisClient.isConnected()) {
         const redisKey = `user:${user.Email_Id}`;
         try {
           await redisClient.del(redisKey);
-          console.log(`Cleared Redis data for user: ${user.Email_Id}`);
         } catch (redisError) {
           console.error("Error clearing Redis data on logout:", redisError);
           // Continue with logout even if Redis cleanup fails
