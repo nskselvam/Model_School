@@ -1,0 +1,21 @@
+[
+{
+    "_id" : 1,
+    "InstitutionName" : "SRM SCIENCE AND TECHNOLOGY",
+    "Name" : "Onscreen Valuation",
+    "Image" : "../../assets/srm.jpg"
+
+},
+{
+    "_id" : 2,
+    "InstitutionName" : "THIYAGARAJAR COLLEGE OF ENGINEERING",
+    "Name" : "OSMS",
+    "Image" : "../../assets/thia.png"
+},
+{
+    "_id" : 3,
+    "InstitutionName" : "THIAGARAJAR COLLEGE",
+    "Name" : "THIAGARAJAR COLLEGE",
+    "Image" : "../../assets/tcarts.jpg"
+}
+]

@@ -1,0 +1,20 @@
+POST http://localhost:8000/api/auth/login/
+content-type: application/json
+
+{
+    "email":"svndatawork@gmail.com",
+    "password":"Svnsvn@123"
+}
+###
+
+POST http://localhost:8000/api/auth/logout/
+content-type: application/json
+
+{
+    "email":"svndatawork@gmail.com",
+    "password":"Svnsvn@123"
+}
+###
+
+GET http://localhost:8000/api/updata_master_data/user-details-original
+
