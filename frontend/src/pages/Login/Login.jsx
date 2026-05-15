@@ -6,6 +6,7 @@ import { useLoginMutation, useLogoutMutation } from '../../redux-slice/authApiSl
 import { loginSuccess, logoutSuccess } from "../../redux-slice/authSlice";
 import '../../style/login.css'
 import { toast } from 'react-toastify'
+import GlobeCanvas from '../../components/Login/GlobeCanvas'
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 1000; // 1 minute
@@ -128,9 +129,15 @@ const Login = () => {
   }
 
   return (
-    <div className="login-container">
+    <div className="login-container login-page">
       <div className="login-content-wrapper">
         <div className="login-left-section">
+          <div className="login-globe-stage" aria-hidden="true">
+            <GlobeCanvas size={500} />
+          </div>
+        </div>
+
+        <div className="login-right-section">
           <LoginCard onSubmit={onSubmit} isLoading={isLoading} error={error} isLocked={isLocked} />
         </div>
       </div>

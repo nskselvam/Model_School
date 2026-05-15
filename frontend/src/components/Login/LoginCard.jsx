@@ -1,25 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Card, Form, Button, Alert } from 'react-bootstrap'
-import { FaShieldAlt, FaUser, FaLock, FaGraduationCap } from 'react-icons/fa'
+import { FaArrowRight } from 'react-icons/fa'
 import { IoReloadOutline } from 'react-icons/io5'
 import PasswordInput from './PasswordInput'
-import navbarData from '../../hooks/navbar/navbar.json'
-import navbarImage from '../../assets/SVN.png'
 
 const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
   const [userInput, setUserInput] = useState('')
-  const [captcha, setCaptcha] = useState("");
+  const [captcha, setCaptcha] = useState(() => createCaptcha())
   const [localError, setLocalError] = useState('')
   const canvasRef = useRef(null);
 
-
-
-
-  const generateCaptcha = () => {
+  function createCaptcha() {
     const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ123456789";
     let captchaCode = "";
     for (let i = 0; i < 6; i++) {
@@ -27,12 +21,17 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
         Math.floor(Math.random() * characters.length)
       );
     }
-    setCaptcha(captchaCode);
-  };
+    return captchaCode;
+  }
 
-  const drawCaptcha = () => {
+  const refreshCaptcha = () => {
+    setUserInput('')
+    setCaptcha(createCaptcha())
+  }
+
+  useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas || !captcha) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
@@ -40,13 +39,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
     canvas.width = 170;
     canvas.height = 37;
 
-    // Create a gradient background
-    const gradient = ctx.createLinearGradient(
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
     gradient.addColorStop(0, "#eeeedd");
     gradient.addColorStop(0.5, "#eeeedd");
     gradient.addColorStop(1, "#eeeedd");
@@ -58,11 +51,10 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
     ctx.fillStyle = "#333";
     ctx.textBaseline = "middle";
 
-    // Draw wavy distorted text
     for (let i = 0; i < captcha.length; i++) {
       const x = 30 + i * 25;
-      const y = 25 + Math.sin(i * 1.5) * 5; // Wave effect
-      const angle = Math.random() * 0.3 - 0.15; // Small random rotation
+      const y = 25 + Math.sin(i * 1.5) * 5;
+      const angle = Math.random() * 0.3 - 0.15;
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(angle);
@@ -80,25 +72,14 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
       ctx.lineWidth = Math.random() * 2;
       ctx.stroke();
     }
-  };
-
-  useEffect(() => {
-    generateCaptcha();
-  }, []);
-
-  useEffect(() => {
-    if (captcha) drawCaptcha();
   }, [captcha]);
 
   return (
     <Card className="login-card">
       {/* Header Section */}
       <div className="login-header">
-        <div className="header-icon-wrapper">
-          <FaGraduationCap className="header-icon" />
-        </div>
-        <h2 className="header-title">COOPERATIVE UNION</h2>
-        <p className="header-subtitle">User Login</p>
+        <img src="/Tamil_Nadu_Emblem.png" alt="Tamil Nadu Emblem" className="header-logo" />
+        <h2 className="header-title">MODEL SCHOOL</h2>
       </div>
 
       <Card.Body>
@@ -129,16 +110,16 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
           if (userInput.trim().toUpperCase() !== captcha) {
             setLocalError('Captcha does not match. Please try again.');
             setUserInput('');
-            generateCaptcha();
+            setCaptcha(createCaptcha())
             return;
           }
           
-          onSubmit({ email: trimmedEmail, password, remember });
+          onSubmit({ email: trimmedEmail, password });
         }}>
           {/* Email Field */}
           <Form.Group className="form-group-custom">
             <Form.Label className="label-with-icon">
-              <FaUser /> User ID
+              User ID
             </Form.Label>
             <Form.Control 
               type="text" 
@@ -154,7 +135,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
           {/* Password Field */}
           <Form.Group className="form-group-custom">
             <Form.Label className="label-with-icon">
-              <FaLock /> Password
+              Password
             </Form.Label>
             <PasswordInput value={password} onChange={setPassword} />
           </Form.Group>
@@ -162,7 +143,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
           {/* Captcha Section */}
           <Form.Group className="form-group-custom">
             <Form.Label className="label-with-icon">
-              <FaShieldAlt /> Security Verification
+              Security Verification
             </Form.Label>
             
             <div className="captcha-wrapper">
@@ -186,7 +167,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
               <Button
                 variant="outline-primary"
                 className="captcha-refresh-btn"
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); generateCaptcha(); setUserInput(''); }}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); refreshCaptcha(); }}
                 title="Refresh captcha"
                 type="button"
               >
@@ -197,7 +178,8 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
 
           {/* Login Button */}
           <Button type="submit" className="login-btn" disabled={isLoading || isLocked} aria-busy={isLoading}>
-            {isLoading ? 'Signing in…' : 'Login to Dashboard →'}
+            <span>{isLoading ? 'Signing in…' : 'Login'}</span>
+            {!isLoading && <FaArrowRight className="login-btn-icon" />}
           </Button>
 
           {/* Forgot Password */}
