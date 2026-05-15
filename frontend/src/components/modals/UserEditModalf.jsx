@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { Modal, Button, Form, Spinner } from 'react-bootstrap';
+import { useSelector } from 'react-redux';
 import { useUpdateGeneralBioDataMutation } from '../../redux-slice/adminOperationApiSlice';
+import { useGetCenterDataQuery } from '../../redux-slice/GeneralGetSqlOperationApiSlice';
 
 // Role Master data for mapping role IDs to names
 const roleMaster = [
@@ -18,7 +20,7 @@ const roleMaster = [
 const UserEditModalf = ({
     show = false,
     currentRow = { id: '', candidateName: '', Email_Id: '', Role: '' },
-    mode = 'edit', // 'add' or 'edit'
+    mode = 'edit',
     onSave = () => { },
     onHide = () => { },
 }) => {
@@ -28,11 +30,18 @@ const UserEditModalf = ({
     const [message, setMessage] = useState({ type: '', text: '' });
     const [isLoading, setIsLoading] = useState(false);
     const [updateGeneralBioData] = useUpdateGeneralBioDataMutation();
-    
-    // Track previous user ID to detect when editing a different user
     const prevUserIdRef = useRef();
 
-    // Update form data when modal opens or when editing a different user
+    const regulationInfo = useSelector((state) => state.auth.regulationInfo);
+    const regulation = regulationInfo?.regulation || '';
+
+    const { data: centerDataRes, isLoading: isLoadingDistricts } = useGetCenterDataQuery(
+        undefined,
+        { skip: String(selectedRole) !== '2' }
+    );
+    const districtList = centerDataRes?.data || [];
+
+    // Sync form when a different user is opened
     React.useEffect(() => {
         if (show && currentRow.id !== prevUserIdRef.current) {
             setFormData(currentRow);
@@ -47,9 +56,7 @@ const UserEditModalf = ({
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
-        if (errors[name]) {
-            setErrors({ ...errors, [name]: '' });
-        }
+        if (errors[name]) setErrors({ ...errors, [name]: '' });
     };
 
     // Handle Role Select Change
@@ -57,9 +64,20 @@ const UserEditModalf = ({
         const roleId = e.target.value;
         setSelectedRole(roleId);
         setFormData({ ...formData, Role: roleId });
-        if (errors.Role) {
-            setErrors({ ...errors, Role: '' });
-        }
+        if (errors.Role) setErrors({ ...errors, Role: '' });
+    };
+
+    // Handle District dropdown — auto-fills DNAME and DIST_NAME from master
+    const handleDistrictChange = (e) => {
+        const dcode = e.target.value;
+        const district = districtList.find((d) => d.DCODE === dcode);
+        setFormData((prev) => ({
+            ...prev,
+            DCODE: dcode,
+            DNAME: district?.DNAME || '',
+            DIST_NAME: district?.dist_Name || '',
+        }));
+        if (errors.DCODE) setErrors((prev) => ({ ...prev, DCODE: '' }));
     };
 
     // Validate Form
@@ -120,12 +138,13 @@ const UserEditModalf = ({
         }
     };
 
-    // Handle Modal Close
+    // Handle Modal Close — reset prevUserIdRef so same user can be re-opened cleanly
     const handleClose = () => {
         setFormData(currentRow);
-        setSelectedRole('');
+        setSelectedRole(currentRow.Role || '');
         setErrors({});
         setMessage({ type: '', text: '' });
+        prevUserIdRef.current = null;
         onHide();
     };
 
@@ -219,6 +238,122 @@ const UserEditModalf = ({
                             {errors.Email_Id}
                         </Form.Control.Feedback>
                     </Form.Group>
+
+                    {/* Student-only fields */}
+                    {String(selectedRole) === '2' && (
+                        <>
+                            {/* District Dropdown */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>District</Form.Label>
+                                <Form.Select
+                                    name="DCODE"
+                                    value={formData.DCODE || ''}
+                                    onChange={handleDistrictChange}
+                                    isInvalid={!!errors.DCODE}
+                                    disabled={isLoadingDistricts}
+                                >
+                                    <option value="">
+                                        {isLoadingDistricts ? 'Loading districts...' : '-- Select District --'}
+                                    </option>
+                                    {districtList.map((d) => (
+                                        <option key={d.id} value={d.DCODE}>
+                                            {d.dist_Name}
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Form.Control.Feedback type="invalid">
+                                    {errors.DCODE}
+                                </Form.Control.Feedback>
+                            </Form.Group>
+
+                            {/* DNAME — auto-filled */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>Department Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={formData.DNAME || ''}
+                                    readOnly
+                                    className="bg-light"
+                                    placeholder="Auto-filled from district"
+                                />
+                            </Form.Group>
+
+                            {/* DIST_NAME — auto-filled */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>District Name</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={formData.DIST_NAME || ''}
+                                    readOnly
+                                    className="bg-light"
+                                    placeholder="Auto-filled from district"
+                                />
+                            </Form.Group>
+
+                            {/* Sub-Center Code */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>Sub-Center Code</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="SUB_CEN"
+                                    value={formData.SUB_CEN || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter sub-center code"
+                                    maxLength={2}
+                                />
+                            </Form.Group>
+
+                            {/* Roll Number */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>Roll Number</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    name="Rollno"
+                                    value={formData.Rollno || ''}
+                                    onChange={handleInputChange}
+                                    placeholder="Enter roll number"
+                                    maxLength={20}
+                                />
+                            </Form.Group>
+
+                            {/* Regulation — read-only from Redux */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>Regulation</Form.Label>
+                                <Form.Control
+                                    type="text"
+                                    value={formData.Regulation || regulation}
+                                    readOnly
+                                    className="bg-light"
+                                    placeholder="From active regulation"
+                                />
+                            </Form.Group>
+
+                            {/* Reg_Status */}
+                            <Form.Group className="mb-4">
+                                <Form.Label>Admission Type</Form.Label>
+                                <div className="d-flex gap-4 mt-1">
+                                    <Form.Check
+                                        type="radio"
+                                        id="edit-reg-regular"
+                                        name="Reg_Status"
+                                        label="Regular"
+                                        value="1"
+                                        checked={String(formData.Reg_Status) === '1'}
+                                        onChange={handleInputChange}
+                                    />
+                                    <Form.Check
+                                        type="radio"
+                                        id="edit-reg-correspondence"
+                                        name="Reg_Status"
+                                        label="Correspondence"
+                                        value="0"
+                                        checked={String(formData.Reg_Status) === '0'}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                            </Form.Group>
+                        </>
+                    )}
                 </Form>
             </Modal.Body>
 

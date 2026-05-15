@@ -72,11 +72,30 @@ const getLoggedInUsers = asyncHandler(async (req, res) => {
 })
 
 const createUserData = asyncHandler(async (req, res) => {
-    const { Role, candidateName, Email_Id } = req.body;
+    const { Role, candidateName, Email_Id, DCODE, DNAME, DIST_NAME, SUB_CEN, Rollno, Reg_Status, Regulation } = req.body;
 
     // Validate required fields
     if (!Role || !candidateName || !Email_Id) {
         throw new AppError('Role, name, and email are required', 400);
+    }
+
+    // Student-only required fields
+    if (String(Role) === '2') {
+        if (!DCODE || !DCODE.toString().trim()) {
+            throw new AppError('DCODE is required for Student User', 400);
+        }
+        if (!SUB_CEN || !SUB_CEN.toString().trim()) {
+            throw new AppError('Sub-center code is required for Student User', 400);
+        }
+        if (!Rollno || !Rollno.toString().trim()) {
+            throw new AppError('Roll number is required for Student User', 400);
+        }
+        if (Reg_Status === undefined || Reg_Status === null || Reg_Status === '') {
+            throw new AppError('Reg_Status is required for Student User (1 = Regular, 0 = Correspondence)', 400);
+        }
+        if (!['0', '1'].includes(String(Reg_Status))) {
+            throw new AppError('Reg_Status must be 1 (Regular) or 0 (Correspondence)', 400);
+        }
     }
 
     // Check if user with this email already exists
@@ -112,11 +131,19 @@ const createUserData = asyncHandler(async (req, res) => {
         ResetPass: 'N',  // User must reset password on first login (N = not reset)
         Login_Status: 'N',  // Not logged in (N = no)
         Mailer: 'N',  // Email not sent yet (N = no)
-        Reg_Status: '1',
+        Reg_Status: String(Role) === '2' ? String(Reg_Status) : '1',
         token_version: 0,
         [User_Roll_Admin_Field]: roleAdminData && roleAdminData.rollDescrption 
             ? JSON.parse(roleAdminData.rollDescrption).join(',') 
-            : null
+            : null,
+        ...(String(Role) === '2' ? {
+            DCODE: DCODE.toString().trim(),
+            DNAME: DNAME ? DNAME.toString().trim() : null,
+            DIST_NAME: DIST_NAME ? DIST_NAME.toString().trim() : null,
+            SUB_CEN: SUB_CEN.toString().trim(),
+            Rollno: Rollno.toString().trim(),
+            Regulation: Regulation ? Regulation.toString().trim() : null,
+        } : {})
     };
 
     // Create new user

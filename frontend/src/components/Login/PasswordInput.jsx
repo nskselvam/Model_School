@@ -14,7 +14,8 @@ const scorePassword = (pw) => {
 }
 
 const PasswordInput = ({ value, onChange, placeholder = 'Password', name = 'password' }) => {
-  const [visible, setVisible] = useState(true)
+  // hidden=true → field is masked (type="password"); hidden=false → field is readable
+  const [hidden, setHidden] = useState(true)
   const { score, label } = useMemo(() => scorePassword(value), [value])
 
   return (
@@ -22,26 +23,25 @@ const PasswordInput = ({ value, onChange, placeholder = 'Password', name = 'pass
       <InputGroup>
         <Form.Control
           name={name}
-          type={visible ? 'password' : 'text'}
+          type={hidden ? 'password' : 'text'}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-label={placeholder}
           autoComplete="current-password"
+          maxLength={200}
         />
-        <Button variant="outline-secondary" onClick={() => setVisible((v) => !v)} aria-label={visible ? 'Hide password' : 'Show password'}>
-          {visible ? <FaEyeSlash /> : <FaEye />}
+        <Button
+          variant="outline-secondary"
+          onClick={() => setHidden((h) => !h)}
+          aria-label={hidden ? 'Show password' : 'Hide password'}
+          type="button"
+        >
+          {hidden ? <FaEye /> : <FaEyeSlash />}
         </Button>
       </InputGroup>
 
-     {/*  <div className="pw-meta d-flex justify-content-between align-items-center mt-2">
-        <small className="text-muted">{label}</small>
-        <div className="pw-bar" aria-hidden>
-          {Array.from({ length: 4 }).map((_, i) => (
-            <span key={i} className={`pw-seg ${i < score ? 'on' : ''}`}></span>
-          ))}
-        </div>
-      </div> */}
+    
     </div>
   )
 }

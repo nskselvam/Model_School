@@ -1,15 +1,16 @@
 /* Login card styles - Professional examination portal */
 .login-container {
-  height: calc(100vh - 70px);
+  min-height: calc(100vh - 70px);
   display: flex;
   align-items: center;
   justify-content: center;
   background: #ffffff;
-  padding: 0;
+  padding: 20px 0;
   margin: 0;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .login-content-wrapper {
@@ -17,11 +18,9 @@
   gap: 30px;
   max-width: 1600px;
   width: 100%;
-  max-height: calc(100vh - 150px);
   align-items: stretch;
   justify-content: center;
   padding: 0 20px;
-  margin-top: -40px;
 }
 
 .login-left-section {
@@ -485,6 +484,142 @@
 /* Hidden elements */
 .brand-crest { display: none; }
 .login-card h4 { display: none; }
+
+/* Height-based responsive — short monitors */
+@media (max-height: 750px) {
+  .login-container {
+    padding: 12px 0;
+    align-items: flex-start;
+  }
+
+  .login-header {
+    padding: 14px 28px;
+    min-height: auto;
+    gap: 5px;
+  }
+
+  .header-icon-wrapper {
+    width: 46px;
+    height: 46px;
+  }
+
+  .header-icon {
+    font-size: 22px;
+  }
+
+  .header-title {
+    font-size: 20px;
+  }
+
+  .header-subtitle {
+    font-size: 13px;
+  }
+
+  .login-card .card-body {
+    padding: 18px 28px;
+  }
+
+  .form-group-custom {
+    margin-bottom: 10px;
+  }
+
+  .label-with-icon {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .login-card .form-control,
+  .login-card .form-select {
+    height: 44px;
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+
+  .password-input .btn {
+    height: 44px;
+    padding: 10px 14px;
+  }
+
+  .captcha-canvas {
+    height: 44px;
+  }
+
+  .captcha-refresh-btn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .login-btn {
+    height: 44px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+    font-size: 14px;
+  }
+}
+
+@media (max-height: 600px) {
+  .login-header {
+    padding: 10px 24px;
+    flex-direction: row;
+    text-align: left;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .header-icon-wrapper {
+    width: 38px;
+    height: 38px;
+    flex-shrink: 0;
+  }
+
+  .header-icon {
+    font-size: 18px;
+  }
+
+  .header-title {
+    font-size: 16px;
+  }
+
+  .header-subtitle {
+    font-size: 12px;
+  }
+
+  .login-card .card-body {
+    padding: 12px 24px;
+  }
+
+  .form-group-custom {
+    margin-bottom: 8px;
+  }
+
+  .login-card .form-control,
+  .login-card .form-select {
+    height: 40px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .password-input .btn {
+    height: 40px;
+    padding: 8px 12px;
+  }
+
+  .captcha-canvas {
+    height: 40px;
+  }
+
+  .captcha-refresh-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .login-btn {
+    height: 40px;
+    margin-top: 8px;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+}
 
 @media (max-width: 768px) and (min-width: 601px) {
   .login-container {

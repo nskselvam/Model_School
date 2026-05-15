@@ -6,7 +6,7 @@ import PasswordInput from './PasswordInput'
 import navbarData from '../../hooks/navbar/navbar.json'
 import navbarImage from '../../assets/SVN.png'
 
-const LoginCard = ({ onSubmit, isLoading, error }) => {
+const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -104,12 +104,14 @@ const LoginCard = ({ onSubmit, isLoading, error }) => {
       <Card.Body>
         {error && <Alert variant="danger">{error}</Alert>}
         {localError && <Alert variant="danger">{localError}</Alert>}
+        {isLocked && <Alert variant="warning">Account temporarily locked. Please wait before retrying.</Alert>}
 
         <Form onSubmit={(e) => {
           e.preventDefault();
           setLocalError('');
           
-          if (!email || !password) {
+          const trimmedEmail = email.trim();
+          if (!trimmedEmail || !password) {
             setLocalError('Please enter email and password');
             return;
           }
@@ -131,7 +133,7 @@ const LoginCard = ({ onSubmit, isLoading, error }) => {
             return;
           }
           
-          onSubmit({ email, password, remember });
+          onSubmit({ email: trimmedEmail, password, remember });
         }}>
           {/* Email Field */}
           <Form.Group className="form-group-custom">
@@ -143,7 +145,9 @@ const LoginCard = ({ onSubmit, isLoading, error }) => {
               placeholder="Enter your email or username" 
               value={email} 
               onChange={(e) => setEmail(e.target.value)} 
-              autoComplete="email"
+              autoComplete="username"
+              maxLength={200}
+              disabled={isLocked}
             />
           </Form.Group>
 
@@ -192,7 +196,7 @@ const LoginCard = ({ onSubmit, isLoading, error }) => {
           </Form.Group>
 
           {/* Login Button */}
-          <Button type="submit" className="login-btn" disabled={isLoading} aria-busy={isLoading}>
+          <Button type="submit" className="login-btn" disabled={isLoading || isLocked} aria-busy={isLoading}>
             {isLoading ? 'Signing in…' : 'Login to Dashboard →'}
           </Button>
 

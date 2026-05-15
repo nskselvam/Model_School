@@ -1,50 +1,53 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useDispatch, useSelector } from 'react-redux'
+import { useDispatch } from 'react-redux'
 import LoginCard from '../../components/Login/LoginCard'
 import { useLoginMutation, useLogoutMutation } from '../../redux-slice/authApiSlice'
 import { loginSuccess, logoutSuccess } from "../../redux-slice/authSlice";
 import '../../style/login.css'
-import login from "../../hooks/login/login.json"
 import { toast } from 'react-toastify'
-//Login file import 
 
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 60 * 1000; // 1 minute
 
+// Maps role value to its dashboard route
+const ROLE_ROUTES = {
+  '0': '/state/common/dashboard',
+  '1': '/district/common/dashboard',
+  '2': '/candidate/dashboard',
+  '3': '/zone/common/dashboard',
+};
 
 const Login = () => {
 
-  //variable declaration
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  const { userInfo } = useSelector((state) => state.auth)
   const [loginMutation, { isLoading }] = useLoginMutation()
   const [logoutMutation] = useLogoutMutation()
   const [error, setError] = useState(null)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  
+  const loginAttemptsRef = useRef(0)
+  const lockTimerRef = useRef(null)
+  const [isLocked, setIsLocked] = useState(false)
+
   // If user is already logged in and tries to access login page, log them out
   useEffect(() => {
     const handleAutoLogout = async () => {
-      // Check if user is logged in from a previous session
       const storedUserInfo = localStorage.getItem('userInfo')
-      
+
       if (storedUserInfo && !isLoggingOut) {
         setIsLoggingOut(true)
         try {
-          // Call logout API with timeout
           const logoutPromise = logoutMutation().unwrap()
-          const timeoutPromise = new Promise((_, reject) => 
+          const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error('Logout timeout')), 5000)
           )
-          
           await Promise.race([logoutPromise, timeoutPromise])
         } catch (err) {
-          // Silently handle errors - user might already be logged out
           if (err?.name !== 'AbortError') {
             console.error('Logout error:', err)
           }
         } finally {
-          // Clear local state regardless of API response
           dispatch(logoutSuccess())
           localStorage.clear()
           toast.info("You have been logged out. Please login again.")
@@ -52,87 +55,84 @@ const Login = () => {
         }
       }
     }
-    
-    // Only run once on component mount
+
     handleAutoLogout()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  
+
+  // Clear lock timer on unmount
+  useEffect(() => () => { if (lockTimerRef.current) clearTimeout(lockTimerRef.current); }, []);
+
   // Handle form submission
   const onSubmit = async ({ email, password }) => {
+    // Check brute-force lockout
+    if (isLocked) {
+      toast.error('Too many failed attempts. Please wait before retrying.');
+      return;
+    }
 
     setError(null)
     try {
-      const response = await loginMutation({ email, password }).unwrap();
+      // Sanitize: trim whitespace, normalise email case
+      const sanitizedEmail = email.trim().toLowerCase();
+      const response = await loginMutation({ email: sanitizedEmail, password }).unwrap();
 
-      const userData = {
-        ...response,
-      }
+      const userData = { ...response };
+
+      // Reset attempt counter on any successful API response
+      loginAttemptsRef.current = 0;
+      if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+      setIsLocked(false);
+      setError(null);
 
       // user_status = 0: Password reset required (temporary password)
-      if (userData.user_status == 0) {
+      if (Number(userData.user_status) === 0) {
         dispatch(loginSuccess({ ...userData }));
         toast.info(userData.message || "Please reset your password");
-        navigate(`/reset-password`);
+        navigate('/reset-password');
       }
-      // ResetPass = N: First-time login with temporary password (N = not reset)
-      else if (userData.ResetPass == 'N') {
+      // ResetPass = N: First-time login with temporary password
+      else if (userData.ResetPass === 'N') {
         dispatch(loginSuccess({ ...userData }));
         toast.info(userData.message || "Please reset your temporary password");
-        navigate(`/temporary-password`);
+        navigate('/temporary-password');
       }
-      else if(userData.user_status == 1 && userData.user_Success && userData.role == '2'){
-        dispatch(loginSuccess({ ...userData }));
-        toast.success(userData.message || "Login successful");
-        navigate('/candidate/dashboard');
-      } else if(userData.user_status == 1 && userData.user_Success && userData.role == '1'){
-        dispatch(loginSuccess({ ...userData }));
-        toast.success(userData.message || "Login successful");
-        navigate('/district/common/dashboard');
-      } else if(userData.user_status == 1 && userData.user_Success && userData.role == '0'){
-        dispatch(loginSuccess({ ...userData }));
-        toast.success(userData.message || "Login successful");
-        navigate('/state/common/dashboard');
-      } else if(userData.user_status == 1 && userData.user_Success && userData.role == '3'){
-        dispatch(loginSuccess({ ...userData }));
-        toast.success(userData.message || "Login successful");
-        navigate('/zone/common/dashboard');
+      else if (Number(userData.user_status) === 1 && userData.user_Success) {
+        const route = ROLE_ROUTES[String(userData.role)];
+        if (route) {
+          dispatch(loginSuccess({ ...userData }));
+          toast.success(userData.message || "Login successful");
+          navigate(route);
+        } else {
+          toast.error("Unauthorized role");
+        }
       }
-       else {
+      else {
         toast.error("Invalid credentials");
       }
     } catch (err) {
-      toast.error(err?.data?.message || err.error || "Login failed");
+      loginAttemptsRef.current += 1;
+      if (loginAttemptsRef.current >= MAX_LOGIN_ATTEMPTS) {
+        setIsLocked(true);
+        loginAttemptsRef.current = 0;
+        if (lockTimerRef.current) clearTimeout(lockTimerRef.current);
+        lockTimerRef.current = setTimeout(() => setIsLocked(false), LOCKOUT_DURATION_MS);
+        toast.error(`Account temporarily locked after ${MAX_LOGIN_ATTEMPTS} failed attempts. Try again in 5 minutes.`);
+      } else {
+        const attemptsLeft = MAX_LOGIN_ATTEMPTS - loginAttemptsRef.current;
+        toast.error(
+          (err?.data?.message || err.error || "Login failed") +
+          ` (${attemptsLeft} attempt${attemptsLeft === 1 ? '' : 's'} remaining)`
+        );
+      }
     }
   }
 
-
-//return value
   return (
     <div className="login-container">
       <div className="login-content-wrapper">
         <div className="login-left-section">
-          <LoginCard onSubmit={onSubmit} isLoading={isLoading} error={error} />
+          <LoginCard onSubmit={onSubmit} isLoading={isLoading} error={error} isLocked={isLocked} />
         </div>
-        
-        {/* <div className="login-right-section">
-          <div className="instructions-card">
-            <h3 className="instructions-title">INSTRUCTIONS TO THE EVALUATORS</h3>
-            <div className="instructions-content">
-              <ul className="instructions-list">
-                <li>To login - ID, and an OTP was already sent to your Registered Mobile number.</li>
-                <li>You will be requested to Reset the Password.</li>
-                <li>The Password should be with 8 digits, Alpha Numerical along with atleast one special character. (For Example- Exam@123).</li>
-                <li>While entering Marks – Enter '0' for wrong answers and Enter 'NA' if Not Answered.</li>
-                <li>Award Marks for all the attended questions irrespective of choices which will be done by the system.</li>
-                <li>'Save' button will be enabled after you checked the last page of the answer booklet.</li>
-                <p style={{ textAlign: 'center', fontSize: '20px', fontWeight: 'bold', color: 'red' }}>SPECIAL INSTRUCTIONS</p>
-                <li>Maintain Silence in the evaluation hall.</li>
-                <li>Logout properly before you leave or keeping the system idle.</li>
-                <li>Do not use Mobile Phones in the evaluation hall.</li>
-              </ul>
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   )

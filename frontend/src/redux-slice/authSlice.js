@@ -1,17 +1,23 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-// Clear invalid localStorage data
-if (localStorage.getItem("userInfo") === "undefined" || localStorage.getItem("userInfo") === "null") {
-  localStorage.removeItem("userInfo");
-}
+// Safe localStorage parser — prevents app crash on malformed / tampered JSON
+const safeParseLocalStorage = (key) => {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw || raw === "undefined" || raw === "null") {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return JSON.parse(raw);
+  } catch {
+    localStorage.removeItem(key); // purge corrupted entry
+    return null;
+  }
+};
 
-if (localStorage.getItem("regulationInfo") === "undefined" || localStorage.getItem("regulationInfo") === "null") {
-  localStorage.removeItem("regulationInfo");
-}
- 
 const initialState = {
-  userInfo: localStorage.getItem("userInfo") ? JSON.parse(localStorage.getItem("userInfo"))  : null,
-  regulationInfo: localStorage.getItem("regulationInfo") ? JSON.parse(localStorage.getItem("regulationInfo"))  : null
+  userInfo: safeParseLocalStorage("userInfo"),
+  regulationInfo: safeParseLocalStorage("regulationInfo"),
 };
 
 const authSlice = createSlice({
