@@ -11,100 +11,62 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER
       },
-      DCODE: {
-        type: DataTypes.STRING(2),
+      D_Code: {
+        type: DataTypes.STRING(10),
         allowNull: true
       },
-      SUB_CEN: {
-        type: DataTypes.STRING(2),
+      User_Id: {
+        type: DataTypes.STRING(250),
         allowNull: true
       },
-      Email_Id: {
-        type: DataTypes.STRING(255),
+      User_Name: {
+        type: DataTypes.STRING(250),
         allowNull: true
       },
-      DNAME: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      DIST_NAME: {
-        type: DataTypes.STRING(255),
+      Password: {
+        type: DataTypes.STRING(200),
         allowNull: true
       },
       Role: {
-        type: DataTypes.STRING(1),
+        type: DataTypes.STRING(15),
         allowNull: true
       },
-      Role_Active: {
-        type: DataTypes.STRING(1),
-        allowNull: true
-      },
-      Regulation: {
-        type: DataTypes.STRING(4),
-        allowNull: true
-      },
-      User_Pass: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      Temp_Password: {
-        type: DataTypes.STRING(20),
+      LoginDate: {
+        type: DataTypes.STRING(50),
         allowNull: true
       },
       ResetPass: {
         type: DataTypes.STRING(20),
         allowNull: true
       },
-      Checking: {
-        type: DataTypes.STRING(10),
+      Temp_Password: {
+        type: DataTypes.STRING(250),
         allowNull: true
       },
-      OutTime: {
-        type: DataTypes.STRING(20),
+      Mobile_Number: {
+        type: DataTypes.STRING(25),
         allowNull: true
       },
-      Mailer: {
-        type: DataTypes.STRING(1),
+      Email_Id: {
+        type: DataTypes.STRING(250),
         allowNull: true
       },
-      Rollno: {
-        type: DataTypes.STRING(20),
-        allowNull: true
-      },
-      Login_Status: {
-        type: DataTypes.STRING(1),
-        allowNull: true
-      },
-      Reg_Status: {
-        type: DataTypes.STRING(1),
-        allowNull: true
-      },
-      token_version: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0
-      },
-      candidateName: {
+      Block: {
         type: DataTypes.STRING(255),
         allowNull: true
       },
-      User_Roll_Admin_0: {
-        type: DataTypes.STRING(1000),
+      state_coord_dcode: {
+        type: DataTypes.STRING(255),
         allowNull: true
       },
-      User_Roll_Admin_1: {
-        type: DataTypes.STRING(1000),
+      mailer: {
+        type: DataTypes.STRING(255),
         allowNull: true
       },
-      User_Roll_Admin_2: {
-        type: DataTypes.STRING(1000),
+      activestatus: {
+        type: DataTypes.STRING(15),
         allowNull: true
       },
-      User_Roll_Admin_3: {
-        type: DataTypes.STRING(1000),
-        allowNull: true
-      },
-
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE

@@ -47,4 +47,30 @@ const getUserDetailsOriginal = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { upDataMasterDataController, getUserDetailsOriginal };
+const getUserDetailsInsert = asyncHandler(async (req, res) => {
+
+
+  const userDetails = await db.sequelize.query(
+    'SELECT * FROM "user_role_master_clone"',
+    {
+      type: Sequelize.QueryTypes.SELECT,
+      raw: true
+    }
+  );
+
+  for (const record of userDetails) {
+    await db.user_role_masters.create({
+      user_role_code: record.user_role_code,
+      user_role: record.user_role
+    }); 
+  }
+
+
+  res.status(200).json({
+    status: "success",
+    message: "Data inserted successfully"
+  });
+
+});
+
+module.exports = { upDataMasterDataController, getUserDetailsOriginal, getUserDetailsInsert };

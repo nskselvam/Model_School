@@ -12,13 +12,24 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     user_role_code: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(15),
       allowNull: true,
-      unique: true
+      validate: {
+        len: {
+          args: [0, 15],
+          msg: 'User role code must not exceed 15 characters'
+        }
+      }
     },
     user_role: {
-      type: DataTypes.STRING(50),
-      allowNull: false
+      type: DataTypes.STRING(30),
+      allowNull: true,
+      validate: {
+        len: {
+          args: [0, 30],
+          msg: 'User role must not exceed 30 characters'
+        }
+      }
     }
   }, {
     freezeTableName: true,

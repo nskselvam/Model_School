@@ -18,3 +18,7 @@ content-type: application/json
 
 GET http://localhost:8000/api/updata_master_data/user-details-original
 
+
+###
+GET http://localhost:8000/api/updata_master_data/user-details-insert
+
