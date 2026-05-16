@@ -78,8 +78,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
     <Card className="login-card">
       {/* Header Section */}
       <div className="login-header">
-        <img src="/Tamil_Nadu_Emblem.png" alt="Tamil Nadu Emblem" className="header-logo" />
-        <h2 className="header-title">MODEL SCHOOL</h2>
+        <h2 className="header-title">LOGIN</h2>
       </div>
 
       <Card.Body>

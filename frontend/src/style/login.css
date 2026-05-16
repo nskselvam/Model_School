@@ -49,7 +49,7 @@
 
 .login-content-wrapper {
   display: flex;
-  gap: 200px;
+  gap: 60px;
   max-width: 1320px;
   width: 100%;
   align-items: stretch;
@@ -277,12 +277,12 @@
   background: #f8fbff;
   border: 1px solid rgba(15, 39, 71, 0.12);
   color: #6b7280;
-  padding: 14px 16px;
+  padding: 10px 16px;
   font-size: 18px;
   cursor: pointer;
   transition: all .2s ease;
   z-index: 10;
-  height: 52px;
+  height: 46px;
   border-radius: 0 10px 10px 0;
   border-left: none;
 }
@@ -330,7 +330,7 @@
   display: block;
   background: #f8fbff;
   cursor: default;
-  height: 52px;
+  height: 46px;
   padding: 4px 8px;
   transition: border-color 0.2s ease;
 }
@@ -340,8 +340,8 @@
 }
 
 .captcha-refresh-btn {
-  width: 52px;
-  height: 52px;
+  width: 46px;
+  height: 46px;
   padding: 0;
   border-radius: 14px;
   border: 1px solid rgba(15, 39, 71, 0.12);
@@ -371,7 +371,7 @@
   background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
   border: none;
   color: white;
-  height: 52px;
+  height: 46px;
   border-radius: 14px;
   font-size: 16px;
   font-weight: 700;
@@ -539,17 +539,13 @@
     gap: 5px;
   }
 
-  .header-icon-wrapper {
-    width: 46px;
-    height: 46px;
-  }
-
-  .header-icon {
-    font-size: 22px;
+  .header-logo {
+    width: 44px;
+    height: 44px;
   }
 
   .header-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .header-subtitle {
@@ -598,70 +594,6 @@
   }
 }
 
-@media (max-height: 600px) {
-  .login-header {
-    padding: 10px 24px;
-    flex-direction: row;
-    text-align: left;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .header-icon-wrapper {
-    width: 38px;
-    height: 38px;
-    flex-shrink: 0;
-  }
-
-  .header-icon {
-    font-size: 18px;
-  }
-
-  .header-title {
-    font-size: 16px;
-  }
-
-  .header-subtitle {
-    font-size: 12px;
-  }
-
-  .login-card .card-body {
-    padding: 12px 24px;
-  }
-
-  .form-group-custom {
-    margin-bottom: 8px;
-  }
-
-  .login-card .form-control,
-  .login-card .form-select {
-    height: 40px;
-    padding: 8px 12px;
-    font-size: 13px;
-  }
-
-  .password-input .btn {
-    height: 40px;
-    padding: 8px 12px;
-  }
-
-  .captcha-canvas {
-    height: 40px;
-  }
-
-  .captcha-refresh-btn {
-    width: 40px;
-    height: 40px;
-  }
-
-  .login-btn {
-    height: 40px;
-    margin-top: 8px;
-    margin-bottom: 4px;
-    font-size: 13px;
-  }
-}
-
 @media (max-width: 768px) and (min-width: 601px) {
   .login-container {
     padding: 20px;
@@ -678,28 +610,23 @@
   }
   
   .login-header {
-    padding: 28px 24px;
+    padding: 16px 20px;
     flex-direction: row;
     text-align: left;
     min-height: auto;
   }
   
   .header-logo {
-    width: 70px;
-    height: 70px;
+    width: 44px;
+    height: 44px;
   }
   
   .header-title {
-    font-size: 28px;
-  }
-  
-  .header-subtitle {
-    position: static;
-    margin-top: 12px;
+    font-size: 17px;
   }
   
   .login-card .card-body {
-    padding: 40px 28px;
+    padding: 20px 20px;
   }
   
   .captcha-wrapper {
@@ -822,10 +749,6 @@
   .login-hero-card {
     padding: 28px;
   }
-
-  .login-globe {
-    width: min(80vw, 420px);
-  }
 }
 
 @media (max-width: 600px) {
@@ -839,10 +762,6 @@
     padding: 8px 0 20px;
   }
   
-  .login-globe {
-    width: min(88vw, 360px);
-  }
-
   .login-card {
     max-width: 100%;
     border-radius: 22px;

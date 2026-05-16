@@ -81,12 +81,19 @@ const GovNavbar = () => {
         <div style={{ width: '40px' }}></div>
         
         <div className="position-absolute start-50 translate-middle-x d-flex align-items-center gap-3">
-          <div className="brand-mark premium-brand-mark" aria-hidden style={{ 
-            padding: 0, 
-            margin: 0, 
-            lineHeight: 0,
-            width: '70px',
-            height: '70px'
+          <div className="brand-mark" aria-hidden style={{ 
+            width: '52px',
+            height: '52px',
+            borderRadius: '50%',
+            background: '#ffffff',
+            boxShadow: '0 2px 10px rgba(15,39,71,0.15)',
+            border: '1px solid rgba(15,39,71,0.08)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+            overflow: 'hidden',
+            padding: '5px'
           }}>
             <img
               src={resolveImageSrc(Institution_Details.Image)}
@@ -103,9 +110,9 @@ const GovNavbar = () => {
             />
           </div>
           <span style={{
-            fontSize: '38px',
-            fontWeight: '600',
-            color: '#fff',
+            fontSize: '30px',
+            fontWeight: '700',
+            color: '#ffffff',
             letterSpacing: '0.5px',
             whiteSpace: 'nowrap'
           }}>

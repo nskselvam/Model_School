@@ -8,9 +8,9 @@
 },
 {
     "_id" : 2,
-    "InstitutionName" : "THIYAGARAJAR COLLEGE OF ENGINEERING",
+    "InstitutionName" : "MODEL SCHOOL",
     "Name" : "Model School",
-    "Image" : "../../assets/thia.png"
+    "Image" : "/Tamil_Nadu_Emblem.png"
 },
 {
     "_id" : 3,
