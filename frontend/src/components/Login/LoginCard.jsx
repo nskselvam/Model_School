@@ -6,7 +6,7 @@ import PasswordInput from './PasswordInput'
 
 const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
 
-  const [email, setEmail] = useState('')
+  const [userId, setUserId] = useState('')
   const [password, setPassword] = useState('')
   const [userInput, setUserInput] = useState('')
   const [captcha, setCaptcha] = useState(() => createCaptcha())
@@ -90,9 +90,9 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
           e.preventDefault();
           setLocalError('');
           
-          const trimmedEmail = email.trim();
-          if (!trimmedEmail || !password) {
-            setLocalError('Please enter email and password');
+          const trimmedUserId = userId.trim();
+          if (!trimmedUserId || !password) {
+            setLocalError('Please enter User ID and password');
             return;
           }
           
@@ -113,7 +113,7 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
             return;
           }
           
-          onSubmit({ email: trimmedEmail, password });
+          onSubmit({ email: trimmedUserId, password });
         }}>
           {/* Email Field */}
           <Form.Group className="form-group-custom">
@@ -122,9 +122,9 @@ const LoginCard = ({ onSubmit, isLoading, error, isLocked = false }) => {
             </Form.Label>
             <Form.Control 
               type="text" 
-              placeholder="Enter your email or username" 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
+              placeholder="Enter your User ID" 
+              value={userId} 
+              onChange={(e) => setUserId(e.target.value)} 
               autoComplete="username"
               maxLength={200}
               disabled={isLocked}

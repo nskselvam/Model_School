@@ -1,46 +1,34 @@
 import React, { useState } from 'react'
 import { Container, Card, Row, Col, Form, Button } from 'react-bootstrap'
-import { FaBook, FaGraduationCap, FaArrowRight, FaBuilding } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaGraduationCap, FaArrowRight } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { setRegulationInfo } from '../../../redux-slice/authSlice'
-import { useGetCenterDataQuery, useGetRegulationDataQuery } from '../../../redux-slice/GeneralGetSqlOperationApiSlice'
+import { useGetDistrictDataQuery } from '../../../redux-slice/GeneralGetSqlOperationApiSlice'
 import { toast } from 'react-toastify'
 import '../../../style/general/general.css'
 
 const State_common_Dashboard = () => {
-  const [regulation, setRegulation] = useState('')
-  const [isCorrespondence, setIsCorrespondence] = useState(false)
-  const [center, setCenter] = useState('')
+  const [district, setDistrict] = useState('')
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { data: centerData, error: error1, isLoading: isloading1 } = useGetCenterDataQuery();
-  const { data: regulationData, error: error2, isLoading: isloading2 } = useGetRegulationDataQuery();
-
-  const regulations = regulationData?.data || [];
-  const centers = centerData?.data || [];
+  const { data: districtData, error, isLoading } = useGetDistrictDataQuery();
+  const districts = districtData?.data || [];
 
   const handleContinue = () => {
-    if (regulation && center) {
-      const mode = isCorrespondence ? 1 : 0;
-      const type = isCorrespondence ? 'Correspondence' : 'Regular';
-      
-      // Store in Redux
-      dispatch(setRegulationInfo({ 
-        regulation, 
-        mode,
-        center
+    if (district) {
+      const selected = districts.find((d) => d.DCODE === district);
+      dispatch(setRegulationInfo({
+        district,
+        districtName: selected?.DNAME || '',
       }));
-      
-      toast.success(`Regulation ${regulation} (${type}) and Center selected successfully!`);
-      
-      // Navigate to state dashboard
+      toast.success(`${selected?.DNAME || district} selected successfully!`);
       navigate('/state/dashboard');
     }
   };
 
-  if (isloading1 || isloading2) {
+  if (isLoading) {
     return (
       <div style={{ minHeight: '100%', height: '100%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div>Loading...</div>
@@ -48,18 +36,10 @@ const State_common_Dashboard = () => {
     );
   }
 
-  if (error1) {
+  if (error) {
     return (
       <div style={{ minHeight: '100%', height: '100%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div>Error: {error1.message}</div>
-      </div>
-    );
-  }
-
-  if (error2) {
-    return (
-      <div style={{ minHeight: '100%', height: '100%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div>Error: {error2.message}</div>
+        <div>Error loading districts: {error?.data?.message || error.message}</div>
       </div>
     );
   }
@@ -68,7 +48,7 @@ const State_common_Dashboard = () => {
     <div style={{ minHeight: '100%', height: '100%', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Container>
         <Row className="mb-5">
-          <Col lg={10} md={12} className="mx-auto">
+          <Col lg={8} md={10} className="mx-auto">
             <Card className="shadow-lg border-0 rounded-4 mb-4" style={{ overflow: 'hidden' }}>
               <Card.Body className="p-5">
                 <div className="text-center mb-4">
@@ -81,17 +61,17 @@ const State_common_Dashboard = () => {
                   }}>
                     <FaGraduationCap size={40} color="white" />
                   </div>
-                  <h2 className="fw-bold text-primary mb-2">Select Regulation & Center</h2>
+                  <h2 className="fw-bold text-primary mb-2">Select District</h2>
                 </div>
 
                 <Form.Group className="mb-4">
                   <Form.Label className="fw-bold mb-3" style={{ fontSize: '1.1rem' }}>
-                    <FaBook className="me-2" style={{ color: '#667eea' }} />
-                    Regulation
+                    <FaMapMarkerAlt className="me-2" style={{ color: '#667eea' }} />
+                    District
                   </Form.Label>
                   <Form.Select
-                    value={regulation}
-                    onChange={(e) => setRegulation(e.target.value)}
+                    value={district}
+                    onChange={(e) => setDistrict(e.target.value)}
                     className="form-control"
                     style={{
                       padding: '12px 15px',
@@ -101,54 +81,10 @@ const State_common_Dashboard = () => {
                     }}
                     size="lg"
                   >
-                    <option value="">-- Select a Regulation --</option>
-                    {regulations.map((reg) => (
-                      <option key={reg.id} value={reg.Regulation}>
-                        {reg.Regulation}
-                      </option>
-                    ))}
-                  </Form.Select>
-                </Form.Group>
-
-                <Form.Group className="mb-4">
-                  <Form.Check
-                    type="checkbox"
-                    id="correspondence-checkbox"
-                    label={
-                      <span style={{ fontSize: '1.1rem', fontWeight: '500' }}>
-                        Correspondence
-                      </span>
-                    }
-                    checked={isCorrespondence}
-                    onChange={(e) => setIsCorrespondence(e.target.checked)}
-                    style={{ fontSize: '1.1rem' }}
-                  />
-                  <Form.Text className="text-muted ms-4">
-                    {isCorrespondence ? 'Correspondence mode selected' : 'Regular mode (default)'}
-                  </Form.Text>
-                </Form.Group>
-
-                <Form.Group className="mb-4">
-                  <Form.Label className="fw-bold mb-3" style={{ fontSize: '1.1rem' }}>
-                    <FaBuilding className="me-2" style={{ color: '#667eea' }} />
-                    Center Name
-                  </Form.Label>
-                  <Form.Select
-                    value={center}
-                    onChange={(e) => setCenter(e.target.value)}
-                    className="form-control"
-                    style={{
-                      padding: '12px 15px',
-                      fontSize: '1rem',
-                      borderColor: '#667eea',
-                      borderWidth: '2px'
-                    }}
-                    size="lg"
-                  >
-                    <option value="">-- Select a Center --</option>
-                    {centers.map((ctr) => (
-                      <option key={ctr.id} value={ctr.DCODE}>
-                        {ctr.DNAME}
+                    <option value="">-- Select a District --</option>
+                    {districts.map((d) => (
+                      <option key={d.id} value={d.DCODE}>
+                        {d.DCODE} — {d.DNAME}
                       </option>
                     ))}
                   </Form.Select>
@@ -157,7 +93,7 @@ const State_common_Dashboard = () => {
                 <div className="text-center">
                   <Button
                     onClick={handleContinue}
-                    disabled={!regulation || !center}
+                    disabled={!district}
                     style={{
                       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                       border: 'none',
@@ -181,3 +117,4 @@ const State_common_Dashboard = () => {
 }
 
 export default State_common_Dashboard
+

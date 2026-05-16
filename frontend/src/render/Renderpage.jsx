@@ -14,10 +14,10 @@ const Renderpage = () => {
   const userinfo = useSelector((state) => state.auth.userInfo);
   const locationPath = Location.pathname;
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const showSidebar = userinfo && locationPath !== '/common/dashboard'  && locationPath !== '/login' && locationPath !== '/candidate-dashboard'&& locationPath !== '/district/common/dashboard' && locationPath !== '/state/common/dashboard';
+  const showSidebar = userinfo && locationPath !== '/common/dashboard'  && locationPath !== '/login' && locationPath !== '/candidate-dashboard'&& locationPath !== '/district/common/dashboard' && locationPath !== '/state/common/dashboard' && locationPath !== '/state-coordinator/common/dashboard' && locationPath !== '/headmaster/common/dashboard' && locationPath !== '/district-officials/common/dashboard' && locationPath !== '/state-assistant/common/dashboard';
   const ValuationScreen = locationPath == '/valuation' || locationPath == '/examiner/reviewe/valuationreview' || locationPath == '/valuation/chief-valuation' || locationPath == '/valuation/chief-valuation-review-main';
 
-  const LoginScreen = locationPath == '/login' || locationPath == '/reset-password' || locationPath == '/candidate-dashboard';
+  const LoginScreen = locationPath == '/login' || locationPath == '/reset-password' || locationPath == '/candidate-dashboard' || locationPath == '/district/common/dashboard' || locationPath == '/state/common/dashboard' || locationPath == '/state-coordinator/common/dashboard' || locationPath == '/headmaster/common/dashboard' || locationPath == '/district-officials/common/dashboard' || locationPath == '/state-assistant/common/dashboard';
   // Show navbar on all pages except valuation screens and login screens
   const showNavbar = !ValuationScreen;
 

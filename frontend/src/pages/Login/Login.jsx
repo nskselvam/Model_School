@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import LoginCard from '../../components/Login/LoginCard'
 import { useLoginMutation, useLogoutMutation } from '../../redux-slice/authApiSlice'
-import { loginSuccess, logoutSuccess } from "../../redux-slice/authSlice";
+import { loginSuccess, logoutSuccess, setRegulationInfo } from "../../redux-slice/authSlice";
 import '../../style/login.css'
 import { toast } from 'react-toastify'
 import GlobeCanvas from '../../components/Login/GlobeCanvas'
@@ -11,12 +11,17 @@ import GlobeCanvas from '../../components/Login/GlobeCanvas'
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 60 * 1000; // 1 minute
 
-// Maps role value to its dashboard route
+// Maps role code to its common dashboard route
+// 0=Admin, 1=Head Master, 2=State User, 3=ITK Volunteers,
+// 4=District Officials, 5=State Coordinator, 6=State Assistant
 const ROLE_ROUTES = {
-  '0': '/state/common/dashboard',
-  '1': '/district/common/dashboard',
-  '2': '/candidate/dashboard',
-  '3': '/zone/common/dashboard',
+  '0': '/state/common/dashboard',               // Admin
+  '1': '/district/dashboard',              // Head Master — goes directly
+  '2': '/state/common/dashboard',               // State User
+  '3': '/zone/common/dashboard',                // ITK Volunteers
+  '4': '/district-officials/common/dashboard',  // District Officials
+  '5': '/state-coordinator/common/dashboard',   // State Coordinator
+  '6': '/state-assistant/common/dashboard',     // State Assistant
 };
 
 const Login = () => {
@@ -73,9 +78,9 @@ const Login = () => {
 
     setError(null)
     try {
-      // Sanitize: trim whitespace, normalise email case
-      const sanitizedEmail = email.trim().toLowerCase();
-      const response = await loginMutation({ email: sanitizedEmail, password }).unwrap();
+      // Sanitize: trim whitespace only (User_Id is case-sensitive)
+      const sanitizedUserId = email.trim();
+      const response = await loginMutation({ user_id: sanitizedUserId, password }).unwrap();
 
       const userData = { ...response };
 
@@ -98,9 +103,13 @@ const Login = () => {
         navigate('/temporary-password');
       }
       else if (Number(userData.user_status) === 1 && userData.user_Success) {
-        const route = ROLE_ROUTES[String(userData.role)];
+        const route = ROLE_ROUTES[String(userData.Role)];
         if (route) {
           dispatch(loginSuccess({ ...userData }));
+          // Role 1 (Head Master) skips common dashboard — set regulationInfo directly from D_Code
+          if (String(userData.Role) === '1' && userData.D_Code) {
+            dispatch(setRegulationInfo({ district: userData.D_Code, districtName: userData.D_Code }));
+          }
           toast.success(userData.message || "Login successful");
           navigate(route);
         } else {

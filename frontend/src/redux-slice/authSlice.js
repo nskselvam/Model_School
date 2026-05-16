@@ -18,32 +18,37 @@ const safeParseLocalStorage = (key) => {
 const initialState = {
   userInfo: safeParseLocalStorage("userInfo"),
   regulationInfo: safeParseLocalStorage("regulationInfo"),
+  // userInfo shape (when logged in):
+  // {
+  //   id, User_Id, User_Name, D_Code, Role, role_name,
+  //   Email_Id, Block, state_coord_dcode,
+  //   user_status, user_Success, message
+  // }
 };
 
 const authSlice = createSlice({
-    name:"auth",
+    name: "auth",
     initialState,
-    reducers:{
+    reducers: {
         loginSuccess: (state, action) => {
-            state.userInfo = action.payload
-            localStorage.setItem('userInfo', JSON.stringify(action.payload)) 
+            state.userInfo = action.payload;
+            localStorage.setItem('userInfo', JSON.stringify(action.payload));
         },
         setRegulationInfo: (state, action) => {
-            state.regulationInfo = action.payload
-            localStorage.setItem('regulationInfo', JSON.stringify(action.payload)) 
+            state.regulationInfo = action.payload;
+            localStorage.setItem('regulationInfo', JSON.stringify(action.payload));
         },
         logoutSuccess: (state) => {
-            state.userInfo = null
-            state.regulationInfo = null
-            localStorage.removeItem('userInfo')
-            localStorage.removeItem('regulationInfo')
+            state.userInfo = null;
+            state.regulationInfo = null;
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('regulationInfo');
         },
         checkAuth: (state) => {
-            state.isAuthenticated = !!localStorage.getItem('token');
+            state.isAuthenticated = !!localStorage.getItem('userInfo');
         }
     },
 });
 
-
-export const {loginSuccess,logoutSuccess,checkAuth,setRegulationInfo} = authSlice.actions;
-export default authSlice.reducer
+export const { loginSuccess, logoutSuccess, checkAuth, setRegulationInfo } = authSlice.actions;
+export default authSlice.reducer;

@@ -66,6 +66,19 @@ const RollexaminerUpdate = lazy(
 const Userrolemaster = lazy(
   () => import("../pages/UserRoleMaster/Userrolemaster.jsx"),
 );
+// Role-specific common dashboards
+const HeadMaster_Common_Dashboard = lazy(
+  () => import("../pages/Dashboard/Common/HeadMaster_Common_Dashboard.jsx"),
+);
+const DistrictOfficials_Common_Dashboard = lazy(
+  () => import("../pages/Dashboard/Common/DistrictOfficials_Common_Dashboard.jsx"),
+);
+const StateCoordinator_Common_Dashboard = lazy(
+  () => import("../pages/Dashboard/Common/StateCoordinator_Common_Dashboard.jsx"),
+);
+const StateAssistant_Common_Dashboard = lazy(
+  () => import("../pages/Dashboard/Common/StateAssistant_Common_Dashboard.jsx"),
+);
 // Add more lazy imports for other pages as needed
 const UserPassword = lazy(() => import("../pages/examiner/userPassword.jsx"));
 
@@ -167,6 +180,23 @@ const router = createBrowserRouter(
           <Route
             path="/admin/userMaster"
             element={<LazyRoute component={Userrolemaster} />}
+          />
+          {/* Role-specific common dashboards */}
+          <Route
+            path="/headmaster/common/dashboard"
+            element={<LazyRoute component={HeadMaster_Common_Dashboard} />}
+          />
+          <Route
+            path="/district-officials/common/dashboard"
+            element={<LazyRoute component={DistrictOfficials_Common_Dashboard} />}
+          />
+          <Route
+            path="/state-coordinator/common/dashboard"
+            element={<LazyRoute component={StateCoordinator_Common_Dashboard} />}
+          />
+          <Route
+            path="/state-assistant/common/dashboard"
+            element={<LazyRoute component={StateAssistant_Common_Dashboard} />}
           />
           <Route
             path="/examiner/resetpassword"

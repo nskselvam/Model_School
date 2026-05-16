@@ -20,13 +20,20 @@ const ResetPassword = () => {
         setIsLoading(true)
         
         try {
-            const examinerEmail = userInfo?.Examiner_id
-            const response = await resetPasswordMutation({ email: examinerEmail, password: newPassword, confirmPassword, passwordStatus: "0" }).unwrap();
+            const userId = userInfo?.User_Id
+            if (!userId) {
+                throw new Error("Session expired. Please log in again.");
+            }
+            const response = await resetPasswordMutation({
+                user_id: userId,
+                password: newPassword,
+                confirmPassword,
+            }).unwrap();
 
-            toast.success(response.message || "Password reset successful");
+            toast.success(response.Message || response.message || "Password reset successful");
             navigate('/');
         } catch (err) {
-            const errorMessage = err?.data?.message || err.error || "Failed to reset password";
+            const errorMessage = err?.data?.message || err?.message || err.error || "Failed to reset password";
             setError(errorMessage);
             toast.error(errorMessage);
         } finally {

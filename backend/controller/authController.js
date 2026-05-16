@@ -54,158 +54,147 @@ const registerUser = asyncHandler(async (req, res) => {
 
 const loginUser = asyncHandler(async (req, res) => {
   const clientIP = getClientIP(req);
-  const { email: username, password } = req.body;
+  const { user_id, password } = req.body;
 
-  // Trim username and password to avoid whitespace issues
-  const trimmedUsername = username?.trim();
+  const trimmedUserId = user_id?.trim();
   const trimmedPassword = password?.trim();
 
-  if (!trimmedUsername || !trimmedPassword) {
-    throw new AppError("Username and password are required", 401);
+  if (!trimmedUserId || !trimmedPassword) {
+    throw new AppError("User ID and password are required", 401);
   }
 
   const user_exists = await User_Details.findOne({
-    where: { Email_Id: trimmedUsername },
+    where: { User_Id: trimmedUserId },
   });
 
   if (!user_exists) {
     throw new AppError("Invalid credentials", 401);
   }
-  
-  // Use Temp_Password if ResetPass='N' (needs reset), otherwise use User_Pass
+
+  if (user_exists.activestatus && user_exists.activestatus !== 'Active') {
+    throw new AppError("Account is inactive. Please contact administrator.", 403);
+  }
+
+  // ResetPass = 'N' → first-time / needs reset (Temp_Password plain text, no Password set yet)
+  // ResetPass = 'Y' → normal login (Password bcrypt hash)
+  //                    BUT if the user enters their Temp_Password, also redirect to reset-password
   const needsReset = user_exists.ResetPass === 'N';
-  const passwordToCheck = needsReset ? user_exists.Temp_Password : user_exists.User_Pass;
-  
-  let isPasswordValid;
-  
+
+  let isPasswordValid = false;
+  let usedTempPassword = false;
+
   if (needsReset) {
-    // Temp_Password is stored as plain text - direct comparison
-    isPasswordValid = trimmedPassword === passwordToCheck;
+    // Only Temp_Password is valid at this stage (plain text)
+    isPasswordValid = trimmedPassword === user_exists.Temp_Password;
+    usedTempPassword = isPasswordValid;
   } else {
-    // User_Pass is hashed - use bcrypt
-    isPasswordValid = await bcrypt.compare(trimmedPassword, passwordToCheck);
+    // Try the actual Password first (bcrypt; handle PHP $2y$ prefix)
+    if (user_exists.Password) {
+      const normalizedHash = user_exists.Password.startsWith('$2y$')
+        ? '$2b$' + user_exists.Password.slice(3)
+        : user_exists.Password;
+      isPasswordValid = await bcrypt.compare(trimmedPassword, normalizedHash);
+    }
+
+    // If Password check failed, try Temp_Password as a fallback (user forgot password)
+    if (!isPasswordValid && user_exists.Temp_Password) {
+      usedTempPassword = trimmedPassword === user_exists.Temp_Password;
+      isPasswordValid = usedTempPassword;
+    }
   }
 
   if (!isPasswordValid) {
     throw new AppError("Invalid credentials", 401);
   }
 
-  if (user_exists.ResetPass == "N") {
+  // Redirect to reset-password if:
+  //  - Account is first-time (ResetPass = 'N'), OR
+  //  - User authenticated using Temp_Password (forgot their main password)
+  if (needsReset || usedTempPassword) {
     res.status(200).json({
-      message: "Please Reset Your Pasword ",
+      message: needsReset
+        ? "Please set your password before continuing."
+        : "Temporary password used. Please reset your password.",
       user_status: 0,
       id: user_exists.id,
-      Examiner_id: user_exists.Email_Id,
-      Dep_Name: user_exists.DCODE,
-      candidateName: user_exists.candidateName,
+      User_Id: user_exists.User_Id,
+      User_Name: user_exists.User_Name,
     });
     return;
   }
 
-  user_exists.token_version = user_exists.token_version + 1;
-  user_exists.Login_Status = 'Y';
-  await user_exists.save();
-  const token = generateToken(
-    res,
-    user_exists.id,
-    user_exists.token_version,
-    user_exists.Email_Id,
-  );
+  // Fetch role label from user_role_masters
+  const User_Role_Master = db.user_role_masters;
+  const roleRecord = await User_Role_Master.findOne({
+    where: { user_role_code: String(user_exists.Role) },
+  });
+  const role_name = roleRecord ? roleRecord.user_role : 'Unknown';
 
-  // Store key user fields in Redis for fast lookup
+  // Generate JWT (no token_version — column not present in this schema)
+  generateToken(res, user_exists.id, undefined, user_exists.Email_Id);
+
+  // Store session in Redis for fast middleware lookups
   if (redisClient.isConnected()) {
     try {
       const redisKey = `user:${user_exists.Email_Id}`;
       const redisData = {
         id: String(user_exists.id),
-        Email_Id: String(user_exists.Email_Id),
-        ...(user_exists.DCODE !== undefined && user_exists.DCODE !== null && { DCODE: String(user_exists.DCODE) }),
-        ...(user_exists.SUB_CEN !== undefined && user_exists.SUB_CEN !== null && { SUB_CEN: String(user_exists.SUB_CEN) }),
-        token_version: String(user_exists.token_version),
-        userRole: String(user_exists.Role),
+        User_Id: String(user_exists.User_Id),
+        User_Name: String(user_exists.User_Name || ''),
+        Email_Id: String(user_exists.Email_Id || ''),
+        D_Code: String(user_exists.D_Code || ''),
+        Role: String(user_exists.Role),
+        role_name: String(role_name),
+        Block: String(user_exists.Block || ''),
+        state_coord_dcode: String(user_exists.state_coord_dcode || ''),
         updatedAt: new Date().toISOString(),
       };
       await redisClient.hSet(redisKey, redisData);
-      await redisClient.expire(redisKey, 14400); // 4 hours
+      await redisClient.expire(redisKey, 14400); // 4 hours TTL
     } catch (redisErr) {
       console.warn('⚠ Could not store session in Redis:', redisErr.message);
-      // Non-fatal — continue with login
     }
   }
 
   req.session.userid = {
     id: user_exists.id,
-    user_Type: user_exists.Email_Id,
-    Candidate_Name: user_exists.candidateName,
-    Candidate_TestCode: user_exists.DCODE,
-    AdminStatus: user_exists.Role,
+    User_Id: user_exists.User_Id,
+    User_Name: user_exists.User_Name,
+    Role: user_exists.Role,
     User_Ip: clientIP,
   };
   req.session.save();
 
-  const User_Log_Update = await User_Log.create({
-    User_Name: user_exists.Email_Id,
+  await User_Log.create({
+    User_Name: user_exists.User_Id,
     User_Acticity: "Login",
     User_Ip: clientIP,
   });
 
-  if (user_exists.Role == "2") {
-    res.status(200).json({
-      message: "Student logged in successfully",
-      user_status: 1,
-      user_Success: true,
-      id: user_exists.id,
-      username: user_exists.Email_Id,
-      name: user_exists.candidateName,
-      dcode: user_exists.DCODE,
-      role: user_exists.Role,
-      regulation_status: user_exists.Reg_Status,
-      regulation: user_exists.Regulation,
-    });
-  } else if (user_exists.Role == "1") {
-    res.status(200).json({
-      message: "District Admin logged in successfully",
-      user_status: 1,
-      user_Success: true,
-      username: user_exists.Email_Id,
-      name: user_exists.candidateName,
-      dcode: user_exists.DCODE,
-      role: user_exists.Role,
-
-    });
-  } else if (user_exists.Role == "3") {
-    res.status(200).json({
-      message: "Zone Admin logged in successfully",
-      user_status: 1,
-      user_Success: true,
-      username: user_exists.Email_Id,
-      name: user_exists.candidateName,
-      dcode: user_exists.DCODE,
-      role: user_exists.Role,
-
-    });
-  }
-  else{
-    res.status(200).json({
-      message: "State Admin logged in successfully",
-      user_status: 1,
-      user_Success: true,
-      username: user_exists.Email_Id,
-      name: user_exists.candidateName,
-      role: user_exists.Role,
-    });
-  }
+  res.status(200).json({
+    message: `${role_name} logged in successfully`,
+    user_status: 1,
+    user_Success: true,
+    id: user_exists.id,
+    User_Id: user_exists.User_Id,
+    User_Name: user_exists.User_Name,
+    D_Code: user_exists.D_Code,
+    Role: user_exists.Role,
+    role_name,
+    Email_Id: user_exists.Email_Id,
+    Block: user_exists.Block,
+    state_coord_dcode: user_exists.state_coord_dcode,
+  });
 });
 
 const password_reset = asyncHandler(async (req, res, next) => {
   const {
-    email: username,
+    user_id: username,
     password,
     confirmPassword,
-    passwordStatus,
   } = req.body;
   if (!username || !password || !confirmPassword) {
-    return next(new AppError("Please provide email and Password", 401));
+    return next(new AppError("Please provide User ID and Password", 401));
   }
 
   if (password !== confirmPassword) {
@@ -214,25 +203,25 @@ const password_reset = asyncHandler(async (req, res, next) => {
     );
   }
 
-  // Find user with ResetPass needing reset ('N')
+  // Find user by User_Id only — covers both:
+  //   1. First-time login (ResetPass = 'N')
+  //   2. Forgot-password flow (ResetPass = 'Y', used Temp_Password to authenticate)
   const result = await User_Details.findOne({
-    where: { 
-      Email_Id: username,
-      ResetPass: 'N'
-    },
+    where: { User_Id: username },
   });
-  
+
   if (!result) {
-    return next(new AppError("Incorrect email or invalid password status", 401));
+    return next(new AppError("User not found. Please check your User ID.", 401));
   }
-  
-  result.User_Pass = bcrypt.hashSync(password, 10);
+
+  result.Password = bcrypt.hashSync(password, 10);
   result.ResetPass = 'Y';
+  result.Temp_Password = null; // invalidate temp password after reset
   const result_updated = await result.save();
-  
+
   res.status(200).json({
     Message: "Password Reset Successfully",
-    Candidate_Name: result_updated.candidateName,
+    User_Name: result_updated.User_Name,
     success: true
   });
 });
@@ -245,12 +234,9 @@ const logout = asyncHandler(async (req, res) => {
     const TokenValue = verifyToken(token);
     const userId = TokenValue.userId;
 
-    // Get user info and update Login_Status
+    // Get user info and clear Redis session
     const user = await User_Details.findByPk(userId);
     if (user) {
-      // Set Login_Status to 'N' on logout
-      user.Login_Status = 'N';
-      await user.save();
       // Clear Redis data for this user
       if (redisClient.isConnected()) {
         const redisKey = `user:${user.Email_Id}`;
@@ -270,7 +256,7 @@ const logout = asyncHandler(async (req, res) => {
   if (req.session.userid) {
     try {
       await User_Log.create({
-        User_Name: req.session.userid.user_Type,
+        User_Name: req.session.userid.User_Id,
         User_Acticity: "Logout",
         User_Ip: clientIP,
       });

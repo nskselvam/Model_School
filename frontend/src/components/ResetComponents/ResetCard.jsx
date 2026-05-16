@@ -117,7 +117,6 @@ const ResetCard = ({ onSubmit, isLoading, error: externalError }) => {
                 {externalError && <Alert variant="danger">{externalError}</Alert>}
                 {error && <Alert variant="danger">{error}</Alert>}
                 {success && <Alert variant="success">{success}</Alert>}
-\
 
                 <Form onSubmit={handleSubmit}>
                     {/* Current Password Field */}
