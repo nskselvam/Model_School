@@ -123,106 +123,106 @@ const LazyRoute = (props) => {
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route path="/" element={<Renderpage />}>
-        <Route index element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<LazyRoute component={Login} />} />
-        <Route element={<Protected />}>
-          {/* <Route path="/temporary-password" element={<LazyRoute component={TemporaryPassword} />} /> */}
-          <Route
-            path="/reset-password"
-            element={<LazyRoute component={ResetPassword} />}
-          />
-          <Route
-            path="/common/dashboard"
-            element={<LazyRoute component={CommonDashboar} />}
-          />
-          <Route
-            path="/candidate/dashboard"
-            element={<LazyRoute component={Candidate_Dashboard} />}
-          />
-          <Route
-            path="/district/common/dashboard"
-            element={<LazyRoute component={District_Common_Dashboard} />}
-          />
-          <Route
-            path="/admin/admin-window"
-            element={<LazyRoute component={AdminWindowsql} />}
-          />
+      <Route index element={<Navigate to="/login" replace />} />
+      <Route path="/login" element={<LazyRoute component={Login} />} />
+      <Route element={<Protected />}>
+        {/* <Route path="/temporary-password" element={<LazyRoute component={TemporaryPassword} />} /> */}
+        <Route
+          path="/reset-password"
+          element={<LazyRoute component={ResetPassword} />}
+        />
+        <Route
+          path="/common/dashboard"
+          element={<LazyRoute component={CommonDashboar} />}
+        />
+        <Route
+          path="/candidate/dashboard"
+          element={<LazyRoute component={Candidate_Dashboard} />}
+        />
+        <Route
+          path="/district/common/dashboard"
+          element={<LazyRoute component={District_Common_Dashboard} />}
+        />
+        <Route
+          path="/admin/admin-window"
+          element={<LazyRoute component={AdminWindowsql} />}
+        />
 
-          <Route
-            path="/district/dashboard"
-            element={<LazyRoute component={District_Dashboard} />}
-          />
-          <Route
-            path="/state/common/dashboard"
-            element={<LazyRoute component={State_Common_Dashboard} />}
-          />
-          <Route
-            path="/zone/common/dashboard"
-            element={<LazyRoute component={Zone_common_Dashboard} />}
-          />
-          <Route
-            path="/state/dashboard"
-            element={<LazyRoute component={State_Dashboard} />}
-          />
-          <Route
-            path="/admin/navbaradd"
-            element={<LazyRoute component={Navbaradd} />}
-          />
-          <Route
-            path="/admin/data-backup"
-            element={<LazyRoute component={DataBackup} />}
-          />
+        <Route
+          path="/district/dashboard"
+          element={<LazyRoute component={District_Dashboard} />}
+        />
+        <Route
+          path="/state/common/dashboard"
+          element={<LazyRoute component={State_Common_Dashboard} />}
+        />
+        <Route
+          path="/zone/common/dashboard"
+          element={<LazyRoute component={Zone_common_Dashboard} />}
+        />
+        <Route
+          path="/state/dashboard"
+          element={<LazyRoute component={State_Dashboard} />}
+        />
+        <Route
+          path="/admin/navbaradd"
+          element={<LazyRoute component={Navbaradd} />}
+        />
+        <Route
+          path="/admin/data-backup"
+          element={<LazyRoute component={DataBackup} />}
+        />
 
-          <Route
-            path="/admin/rollmaster"
-            element={<LazyRoute component={Rollmaster} />}
-          />
-          <Route
-            path="/admin/examinerrollupdate"
-            element={<LazyRoute component={RollexaminerUpdate} />}
-          />
-          <Route
-            path="/admin/userMaster"
-            element={<LazyRoute component={Userrolemaster} />}
-          />
-          {/* Role-specific common dashboards */}
-          <Route
-            path="/headmaster/common/dashboard"
-            element={<LazyRoute component={HeadMaster_Common_Dashboard} />}
-          />
-          <Route
-            path="/district-officials/common/dashboard"
-            element={<LazyRoute component={DistrictOfficials_Common_Dashboard} />}
-          />
-          <Route
-            path="/state-coordinator/common/dashboard"
-            element={<LazyRoute component={StateCoordinator_Common_Dashboard} />}
-          />
-          <Route
-            path="/state-assistant/common/dashboard"
-            element={<LazyRoute component={StateAssistant_Common_Dashboard} />}
-          />
-          <Route
-            path="/examiner/resetpassword"
-            element={<LazyRoute component={ExaminerResetPassword} />}
-          />
-          <Route
-            path="/examiner/userpassword"
-            element={<LazyRoute component={UserPassword} />}
-          />
-          <Route
-            path="/examiner/temporary-password"
-            element={<LazyRoute component={UserTemporaryPassword} />}
-          />
-          <Route
-            path="/examiner/examinerstatus"
-            element={<LazyRoute component={ExaminerLoginStatus} />}
-          />
-          <Route
-            path="/master_data/Vacancy_master"
-            element={<LazyRoute component={Vacancy_master_Dashboard} />}
-          />
-        </Route>
+        <Route
+          path="/admin/rollmaster"
+          element={<LazyRoute component={Rollmaster} />}
+        />
+        <Route
+          path="/admin/examinerrollupdate"
+          element={<LazyRoute component={RollexaminerUpdate} />}
+        />
+        <Route
+          path="/admin/userMaster"
+          element={<LazyRoute component={Userrolemaster} />}
+        />
+        {/* Role-specific common dashboards */}
+        <Route
+          path="/headmaster/common/dashboard"
+          element={<LazyRoute component={HeadMaster_Common_Dashboard} />}
+        />
+        <Route
+          path="/district-officials/common/dashboard"
+          element={<LazyRoute component={DistrictOfficials_Common_Dashboard} />}
+        />
+        <Route
+          path="/state-coordinator/common/dashboard"
+          element={<LazyRoute component={StateCoordinator_Common_Dashboard} />}
+        />
+        <Route
+          path="/state-assistant/common/dashboard"
+          element={<LazyRoute component={StateAssistant_Common_Dashboard} />}
+        />
+        <Route
+          path="/examiner/resetpassword"
+          element={<LazyRoute component={ExaminerResetPassword} />}
+        />
+        <Route
+          path="/examiner/userpassword"
+          element={<LazyRoute component={UserPassword} />}
+        />
+        <Route
+          path="/examiner/temporary-password"
+          element={<LazyRoute component={UserTemporaryPassword} />}
+        />
+        <Route
+          path="/examiner/examinerstatus"
+          element={<LazyRoute component={ExaminerLoginStatus} />}
+        />
+        <Route
+          path="/master_data/Vacancy_master"
+          element={<LazyRoute component={Vacancy_master_Dashboard} />}
+        />
+      </Route>
       {/* Catch-all 404 */}
       <Route path="*" element={<LazyRoute component={PagenotFound} />} />
     </Route>,

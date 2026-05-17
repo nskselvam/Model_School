@@ -48,47 +48,64 @@ const getUserDetailsOriginal = asyncHandler(async (req, res) => {
 });
 
 const getUserDetailsInsert = asyncHandler(async (req, res) => {
+  try {
+    const userDetails = await db.sequelize.query(
+      'SELECT * FROM "Master_11_clone"',
+      {
+        type: Sequelize.QueryTypes.SELECT,
+        raw: true
+      }
+    );
 
-
-  const userDetails = await db.sequelize.query(
-    'SELECT * FROM "Vacancy_11"',
-    {
-      type: Sequelize.QueryTypes.SELECT,
-      raw: true
+    for (const record of userDetails) {
+      await db.Master_11.create({
+        district_name: record.district_name,
+        block_name: record.block_name,
+        edu_dist_name: record.edu_dist_name,
+        udise_code: record.udise_code,
+        school_name: record.school_name,
+        school_type: record.school_type,
+        management: record.management,
+        category: record.category,
+        cate_type: record.cate_type,
+        Emis_No: record.Emis_No,
+        name: record.name,
+        Gender_Label: record.Gender_Label,
+        dob_emis: record.dob_emis,
+        father_name: record.father_name,
+        mother_name: record.mother_name,
+        class_studying_id: record.class_studying_id,
+        Disability_status: record.Disability_status,
+        Disability_Name: record.Disability_Name,
+        community_name: record.community_name,
+        Medium: record.Medium,
+        Gdc_DOB: record.Gdc_DOB,
+        Gdc_Gender: record.Gdc_Gender,
+        Gdc_Medium: record.Gdc_Medium,
+        Cen_Code: record.Cen_Code,
+        com: record.com,
+        sex: record.sex,
+        pstm: record.pstm,
+        dob: record.dob,
+        Student_Status: record.Student_Status,
+        Zone_Jee: record.Zone_Jee,
+        Zone_Neet: record.Zone_Neet,
+        Zone_Name_Jee: record.Zone_Name_Jee,
+        Zone_Name_Neet: record.Zone_Name_Neet
+      }); 
     }
-  );
 
-  for (const record of userDetails) {
-    await db.Vacancy_Master.create({
-      Vac_Status: record.Vac_Status,
-      Catgegory: record.Catgegory,
-      Vacancy: record.Vacancy,
-      sex: record.sex,
-      pstm: record.pstm,
-      Student_Status: record.Student_Status,
-      Com: record.Com,
-      ph: record.ph,
-      seq: record.seq,
-      REM: record.REM,
-      REM1: record.REM1,
-      REM2: record.REM2,
-      REM3: record.REM3,
-      Vacancy_Type: record.Vacancy_Type,
-      Center_Type: record.Center_Type,
-      Zone_Code: record.Zone_Code,
-      Zone_Name: record.Zone_Name,
-      student_type: record.student_type,
-      dCode: record.dCode,
-      vacancyStd: record.vacancyStd
-    }); 
+    res.status(200).json({
+      status: "success",
+      message: "Data inserted successfully",
+      count: userDetails.length
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message
+    });
   }
-
-
-  res.status(200).json({
-    status: "success",
-    message: "Data inserted successfully"
-  });
-
 });
 
 module.exports = { upDataMasterDataController, getUserDetailsOriginal, getUserDetailsInsert };

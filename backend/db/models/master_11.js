@@ -142,6 +142,41 @@ module.exports = (sequelize, DataTypes) => {
       Zone_Name_Neet: {
         type: DataTypes.STRING(50),
         allowNull: true
+      },
+      selcat: {
+        type: DataTypes.STRING(50),
+        allowNull: true
+      },
+      selcom: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      selsex: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      selpstm: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      selPost: {
+        type: DataTypes.STRING(2),
+        allowNull: true
+      },
+      selFlg: {
+        type: DataTypes.STRING(1),
+        allowNull: true,
+        defaultValue: 'N'
+      },
+      distFlg: {
+        type: DataTypes.STRING(1),
+        allowNull: true,
+        defaultValue: 'N'
+      },
+      statFlg: {
+        type: DataTypes.STRING(1),
+        allowNull: true,
+        defaultValue: 'N'
       }
     },
     {
