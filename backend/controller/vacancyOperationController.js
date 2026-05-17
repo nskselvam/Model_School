@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const db = require("../db/models");
-const District_master = db.District_Masters;
-const Vacancy_master = db.Vacancy_Masters;
+const District_master = db.District_Master;
+const Vacancy_master = db.Vacancy_Master;
 
 const getDistrictMasterData = asyncHandler(async (req, res) => {
     const districtData = await District_master.findAll();
@@ -13,7 +13,7 @@ const getVacancyData = asyncHandler(async (req, res) => {
 
     if(dcode != 'ALL') {
         const vacancyData = await Vacancy_master.findAll({
-            where: { dcode }
+            where: { dCode: dcode }
         });
         res.json(vacancyData);
     } else {
