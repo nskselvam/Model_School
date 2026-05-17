@@ -12,6 +12,7 @@ const NavBarHeader = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("userRole query parameter is required");
   }
+
   
   let flnameRollName = "User_Roll_Admin_" + req.query.userRole;
   let token;
@@ -25,6 +26,7 @@ const NavBarHeader = asyncHandler(async (req, res) => {
   let tokendb;
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Decoded token in NavBarHeader:', decoded);
     tokendb = await db.User_Details.findByPk(decoded.userId);
     if (!tokendb) {
       return res.status(401).json({ message: "User not found" });

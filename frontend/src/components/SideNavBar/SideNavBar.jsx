@@ -58,8 +58,9 @@ const SideNavBar = ({ isCollapsed, setIsCollapsed }) => {
 
   // Get current user info from Redux
   const { userInfo } = useSelector((state) => state.auth)
+  console.log(userInfo)
   // Use selected_role (the role the user chose at login/pin screen)
-  const currentUserType = userInfo?.selected_role ?? userInfo?.user_Type ?? userInfo?.userType ?? userInfo?.role 
+  const currentUserType = userInfo?.selected_role ?? userInfo?.user_Type ?? userInfo?.userType ?? userInfo?.role ?? userInfo.Role 
 
 
 

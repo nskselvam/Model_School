@@ -82,6 +82,10 @@ const StateAssistant_Common_Dashboard = lazy(
 // Add more lazy imports for other pages as needed
 const UserPassword = lazy(() => import("../pages/examiner/userPassword.jsx"));
 
+const Vacancy_master_Dashboard = lazy(
+  () => import("../pages/Dashboard/Master_Dashboard/Vacancy_master_Dashboard.jsx"),
+);
+
 const PagenotFound = lazy(
   () => import("../pages/Dashboard/Pagenotfound/PagenotFound.jsx"),
 );
@@ -213,6 +217,10 @@ const router = createBrowserRouter(
           <Route
             path="/examiner/examinerstatus"
             element={<LazyRoute component={ExaminerLoginStatus} />}
+          />
+          <Route
+            path="/master_data/Vacancy_master"
+            element={<LazyRoute component={Vacancy_master_Dashboard} />}
           />
         </Route>
       {/* Catch-all 404 */}

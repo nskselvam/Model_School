@@ -67,6 +67,46 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(15),
         allowNull: true
       },
+      User_Roll_Admin_0: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      User_Roll_Admin_1: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      User_Roll_Admin_2: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      User_Roll_Admin_3: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      // User_Roll_Admin_4: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
+      // User_Roll_Admin_5: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
+      // User_Roll_Admin_6: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
+      // User_Roll_Admin_7: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
+      // User_Roll_Admin_8: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
+      // User_Roll_Admin_9: {
+      //   type: DataTypes.STRING(500),
+      //   allowNull: true
+      // },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE

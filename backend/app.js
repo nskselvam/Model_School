@@ -15,7 +15,7 @@ const GeneralGetSqlOperationRouter = require('./router/GeneralGetSqlOperationRou
 const adminOperationRouter = require('./router/adminOperationRouter');
 const dataBackupRouter = require('./router/dataBackupRouter');
 const adminSqlRouter = require('./router/adminSqlRouter');
-
+const vacancyOperationRouter = require('./router/vacancyOperationRouter');
 const redisRouter = require('./router/redisRouter');
 require("dotenv").config({ path: `${process.cwd()}/.env`});
 const sequelize = require('./config/database');
@@ -79,6 +79,7 @@ app.use('/api/redis', redisRouter);
 app.use('/api/admin', adminOperationRouter);
 app.use('/api/data-backup', dataBackupRouter);
 app.use('/api/admin-sql', adminSqlRouter);
+app.use('/api/vacancy', vacancyOperationRouter);
 
 
 app.use(asyncHandler(async (req, res, next) => {
