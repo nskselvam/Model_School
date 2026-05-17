@@ -11,12 +11,11 @@ export const vacancyApiSlice = apiSlice.injectEndpoints({
     }),
 
     getVacancyData: builder.query({
-      query: (data) => ({
-        url: `/api/vacancy/get_vacancy_data`,
+      query: (dcode = 'ALL') => ({
+        url: `/api/vacancy/get_vacancy_data/${dcode}`,
         method: "GET",
-        body: data,
       }),
-      invalidatesTags: ["VacancyData"],
+      providesTags: ["VacancyData"],
     }),
   }),
 });
