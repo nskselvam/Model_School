@@ -9,11 +9,11 @@ module.exports = {
   apps: [
     {
       // ── Identity ─────────────────────────────────────────────
-      name        : 'onscreen-valuation-backend',
+      name        : 'enrollment-backend',
       script      : 'app.js',
 
       // ── Cluster / Scaling ─────────────────────────────────────
-      instances   : 15,             // 15 of 32 cores (optimal for high concurrency)
+      instances   : 2,             // 15 of 32 cores (optimal for high concurrency)
       exec_mode   : 'cluster',      // load balance across all workers
 
       // ── Memory & Node Tuning ──────────────────────────────────
@@ -25,7 +25,7 @@ module.exports = {
       watch               : false,
       autorestart         : true,
       restart_delay       : 3000,   // 3 s back-off before restarting (ms)
-      max_restarts        : 20,     // allow more retries for heavy workloads
+      max_restarts        : 4,     // allow more retries for heavy workloads
       min_uptime          : '10s',  // stable if alive > 10 s
 
       // ── Logging ───────────────────────────────────────────────

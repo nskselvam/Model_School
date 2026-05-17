@@ -20,5 +20,5 @@ GET http://localhost:8000/api/updata_master_data/user-details-original
 
 
 ###
-GET http://localhost:8000/api/updata_master_data/user-details-insert
+GET http://localhost:8010/api/updata_master_data/user-details-insert
 

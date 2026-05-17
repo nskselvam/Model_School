@@ -50,6 +50,7 @@ app.use(session({
 const ALLOWED_ORIGINS = [
     'http://localhost:5173',
     'http://localhost:3000',
+    'https://enrollment.tnexams.net'
    // 'https://dems.srmist.edu.in',
     //process.env.CLIENT_URL,               // https://osms.svnimging.com
 ].filter(Boolean);

@@ -51,7 +51,7 @@ const getUserDetailsInsert = asyncHandler(async (req, res) => {
 
 
   const userDetails = await db.sequelize.query(
-    'SELECT * FROM "user_role_master_clone"',
+    'SELECT * FROM "Vacancy_11"',
     {
       type: Sequelize.QueryTypes.SELECT,
       raw: true
@@ -59,9 +59,27 @@ const getUserDetailsInsert = asyncHandler(async (req, res) => {
   );
 
   for (const record of userDetails) {
-    await db.user_role_masters.create({
-      user_role_code: record.user_role_code,
-      user_role: record.user_role
+    await db.Vacancy_Master.create({
+      Vac_Status: record.Vac_Status,
+      Catgegory: record.Catgegory,
+      Vacancy: record.Vacancy,
+      sex: record.sex,
+      pstm: record.pstm,
+      Student_Status: record.Student_Status,
+      Com: record.Com,
+      ph: record.ph,
+      seq: record.seq,
+      REM: record.REM,
+      REM1: record.REM1,
+      REM2: record.REM2,
+      REM3: record.REM3,
+      Vacancy_Type: record.Vacancy_Type,
+      Center_Type: record.Center_Type,
+      Zone_Code: record.Zone_Code,
+      Zone_Name: record.Zone_Name,
+      student_type: record.student_type,
+      dCode: record.dCode,
+      vacancyStd: record.vacancyStd
     }); 
   }
 

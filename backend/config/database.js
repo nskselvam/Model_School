@@ -24,11 +24,15 @@ const sequelize = new Sequelize({
 
   // ── Dialect / Connection ─────────────────────────────────────
   dialectOptions: {
-    ...config.dialectOptions,
     connectTimeout        : 10000, // TCP connect timeout (ms)
     statement_timeout     : 60000, // kill any query running > 60 s
     idle_in_transaction_session_timeout: 30000, // kill idle transactions > 30 s
     application_name      : `onscreen-valuation-${env}`, // visible in pg_stat_activity
+    useUTC                : config.dialectOptions?.useUTC !== undefined ? config.dialectOptions.useUTC : false,
+    ssl                   : config.dialectOptions?.ssl || {
+      require            : true,
+      rejectUnauthorized : false,
+    }, // Enable SSL for AWS RDS
   },
 
   // ── Logging ──────────────────────────────────────────────────

@@ -9,7 +9,13 @@ module.exports = {
     port           : process.env.DB_PORT        || 5432,
     timezone       : "+05:30",
     dialect        : "postgres",
-    dialectOptions : { useUTC: false },
+    dialectOptions : {
+      useUTC: false,
+      ssl: {
+        require            : true,
+        rejectUnauthorized : false,
+      },
+    },
   },
   test: {
     username       : process.env.DB_USERNAME    || "postgres",
@@ -28,6 +34,12 @@ module.exports = {
     port           : process.env.DB_PORT        || 5432,
     timezone       : "+05:30",
     dialect        : "postgres",
-    dialectOptions : { useUTC: false },
+    dialectOptions : {
+      useUTC: false,
+      ssl: {
+        require            : true,
+        rejectUnauthorized : false,
+      },
+    },
   },
 };
