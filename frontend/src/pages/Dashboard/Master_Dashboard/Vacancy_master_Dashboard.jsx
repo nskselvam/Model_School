@@ -2,20 +2,22 @@ import React, { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import DataTable from 'react-data-table-component/dist/index.es.js'
 import { useGetDistrictMasterDataQuery, useGetVacancyDataQuery } from '../../../redux-slice/vacancyApiSlice'
+import * as XLSX from 'xlsx'
 
 const Vacancy_master_Dashboard = () => {
     // Get user's district code from Redux state
     const { regulationInfo } = useSelector((state) => state.auth);
     const userDistrictCode = regulationInfo?.district || "00";
     
-    // If D_Code is "00" (All District), fetch all data. Otherwise, fetch specific district data
-    const districtParam = userDistrictCode === "00" ? "ALL" : userDistrictCode;
+    // State for district filter
+    const [selectedDistrict, setSelectedDistrict] = useState("ALL");
+    
+    // Determine which district to fetch data for
+    // If user is admin (00), use selectedDistrict; otherwise use their district code
+    const districtParam = userDistrictCode === "00" ? selectedDistrict : userDistrictCode;
  
     const { data: districtMasterData, isLoading: isDistrictMasterDataLoading, error: districtMasterDataError } = useGetDistrictMasterDataQuery();
     const { data: vacancyData, isLoading: isVacancyDataLoading, error: vacancyDataError } = useGetVacancyDataQuery(districtParam);
-
-    // State for district filter
-    const [selectedDistrict, setSelectedDistrict] = useState("ALL");
 
     // Define columns for DataTable
     const columns = [
@@ -25,15 +27,45 @@ const Vacancy_master_Dashboard = () => {
             sortable: true,
             width: '70px'
         },
-        {
-            name: 'District Code',
-            selector: row => row.dCode,
+
+        
+          {
+            name: 'Vacancy Type',
+            selector: row => row.student_type,
             sortable: true,
-            width: '120px'
+            wrap: true,
+            width: '200px'
         },
+
+                  {
+            name: 'Zone Name ',
+            selector: row => row.Zone_Name,
+            sortable: true,
+            wrap: true,
+            width: '200px'
+        },
+
         {
             name: 'Category',
-            selector: row => row.Catgegory,
+            selector: row => row.REM,
+            sortable: true,
+            wrap: true
+        },
+                {
+            name: 'Gender',
+            selector: row => row.REM1,
+            sortable: true,
+            wrap: true
+        },
+                        {
+            name: 'Medium',
+            selector: row => row.REM2,
+            sortable: true,
+            wrap: true
+        },
+                                {
+            name: 'Physical Handicapped',
+            selector: row => row.REM3,
             sortable: true,
             wrap: true
         },
@@ -44,96 +76,17 @@ const Vacancy_master_Dashboard = () => {
             width: '100px'
         },
         {
-            name: 'Vacancy Status',
-            selector: row => row.Vac_Status,
-            sortable: true,
-            width: '130px'
-        },
-        {
-            name: 'Sex',
-            selector: row => row.sex,
-            sortable: true,
-            width: '80px'
-        },
-        {
-            name: 'PSTM',
-            selector: row => row.pstm,
-            sortable: true,
-            width: '90px'
-        },
-        {
-            name: 'Student Status',
-            selector: row => row.Student_Status,
-            sortable: true,
-            width: '130px'
-        },
-        {
-            name: 'Community',
-            selector: row => row.Com,
-            sortable: true,
-            width: '110px'
-        },
-        {
-            name: 'PH',
-            selector: row => row.ph,
-            sortable: true,
-            width: '80px'
-        },
-        {
-            name: 'Sequence',
-            selector: row => row.seq,
-            sortable: true,
-            width: '100px'
-        },
-        {
-            name: 'Vacancy Type',
-            selector: row => row.Vacancy_Type,
+            name: 'Filled Vacancy',
+            selector: row => row.filledVacancy,
             sortable: true,
             width: '120px'
         },
-        {
-            name: 'Center Type',
-            selector: row => row.Center_Type,
-            sortable: true,
-            wrap: true
-        },
-        {
-            name: 'Zone Code',
-            selector: row => row.Zone_Code,
-            sortable: true,
-            width: '110px'
-        },
-        {
-            name: 'Zone Name',
-            selector: row => row.Zone_Name,
-            sortable: true,
-            wrap: true
-        },
-        {
-            name: 'Student Type',
-            selector: row => row.student_type,
-            sortable: true,
-            wrap: true
-        },
-        {
-            name: 'Remarks',
-            selector: row => row.REM,
-            sortable: true,
-            wrap: true
-        }
     ];
 
-    // Filter data based on selected district
+    // Data is already filtered by backend based on districtParam, no need for frontend filtering
     const filteredData = useMemo(() => {
-        if (!vacancyData) return [];
-        
-        // Show all data if "ALL" is selected or if district code is "00" (All District)
-        if (selectedDistrict === "ALL" || selectedDistrict === "00") {
-            return vacancyData;
-        }
-        
-        return vacancyData.filter(item => item.dCode === selectedDistrict);
-    }, [vacancyData, selectedDistrict]);
+        return vacancyData || [];
+    }, [vacancyData]);
 
     // Get unique district options
     const districtOptions = useMemo(() => {
@@ -147,6 +100,52 @@ const Vacancy_master_Dashboard = () => {
         // If user has specific district access
         return districtMasterData.filter(district => district.DCODE === userDistrictCode);
     }, [districtMasterData, userDistrictCode]);
+
+    // Function to export data to Excel
+    const exportToExcel = () => {
+        // Prepare data for export
+        const exportData = filteredData.map((row, index) => ({
+            'S.No': index + 1,
+            'Vacancy Type': row.student_type || '',
+            'Zone Name': row.Zone_Name || '',
+            'Category': row.REM || '',
+            'Gender': row.REM1 || '',
+            'Medium': row.REM2 || '',
+            'Physical Handicapped': row.REM3 || '',
+            'Vacancy': row.Vacancy || 0,
+            'Filled Vacancy': row.filledVacancy || 0
+        }));
+
+        // Create worksheet
+        const worksheet = XLSX.utils.json_to_sheet(exportData);
+        
+        // Set column widths
+        const columnWidths = [
+            { wch: 8 },  // S.No
+            { wch: 20 }, // Vacancy Type
+            { wch: 20 }, // Zone Name
+            { wch: 15 }, // Category
+            { wch: 10 }, // Gender
+            { wch: 15 }, // Medium
+            { wch: 20 }, // Physical Handicapped
+            { wch: 10 }, // Vacancy
+            { wch: 15 }  // Filled Vacancy
+        ];
+        worksheet['!cols'] = columnWidths;
+
+        // Create workbook
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Vacancy Data');
+
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().slice(0, 10);
+        const districtName = selectedDistrict === "ALL" ? "All_Districts" : 
+            districtOptions.find(d => d.DCODE === selectedDistrict)?.DNAME || selectedDistrict;
+        const filename = `Vacancy_Master_${districtName}_${timestamp}.xlsx`;
+
+        // Download file
+        XLSX.writeFile(workbook, filename);
+    };
 
     if (isDistrictMasterDataLoading || isVacancyDataLoading) {
         return <div className="text-center p-4">Loading...</div>;
@@ -188,10 +187,18 @@ const Vacancy_master_Dashboard = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="col-sm-6">
-                            <span className="badge bg-info">
+                        <div className="col-sm-4">
+                            <span className="badge bg-info me-2">
                                 Showing {filteredData.length} records
                             </span>
+                            <button 
+                                className="btn btn-success btn-sm"
+                                onClick={exportToExcel}
+                                disabled={filteredData.length === 0}
+                            >
+                                <i className="bi bi-file-earmark-excel me-1"></i>
+                                Export to Excel
+                            </button>
                         </div>
                     </div>
 

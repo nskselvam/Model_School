@@ -13,81 +13,113 @@ import Protected from "../private/Protected.jsx";
 import ErrorBoundary from "../components/ErrorBoundary.jsx";
 
 // Lazy load pages
-const Login = lazy(() => import("../pages/Login/Login.jsx"));
-const ResetPassword = lazy(
-  () => import("../pages/reset_password/ResetPassword.jsx"),
-);
-//const TemporaryPassword = lazy(() => import("../pages/TemporaryPassword/TemporaryPassword.jsx"));
-const CommonDashboar = lazy(
-  () => import("../pages/Dashboard/Common/CommonDashboar.jsx"),
-);
-const Candidate_Dashboard = lazy(
-  () =>
-    import("../pages/Dashboard/Candidate_Dashboard/Candidate_Dashboard.jsx"),
-);
-const District_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/District_Common_Dashboard.jsx"),
+const Login = lazy(() => 
+  import("../pages/Login/Login.jsx")
 );
 
-const DataBackup = lazy(() => import("../pages/Databackup/DataBackup.jsx"));
-const AdminWindowsql = lazy(
-  () => import("../pages/adminwindow/AdminWindowsql.jsx"),
+const ResetPassword = lazy(() => 
+  import("../pages/reset_password/ResetPassword.jsx")
 );
 
-const ExaminerResetPassword = lazy(
-  () => import("../pages/examiner/resetPassword.jsx"),
+const CommonDashboar = lazy(() => 
+  import("../pages/Dashboard/Common/CommonDashboar.jsx")
 );
 
-const District_Dashboard = lazy(
-  () => import("../pages/Dashboard/District_Dashboard/District_Dashboard.jsx"),
-);
-const State_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/State_common_Dashboard.jsx"),
-);
-const State_Dashboard = lazy(
-  () => import("../pages/Dashboard/State_Dashboard/State_Dashboard.jsx"),
-);
-const Zone_common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/Zone_common_Dashboard.jsx"),
-);
-const ExaminerLoginStatus = lazy(
-  () => import("../pages/ExaminerLoginStatus/ExaminerLoginStatus.jsx"),
+const Candidate_Dashboard = lazy(() =>
+  import("../pages/Dashboard/Candidate_Dashboard/Candidate_Dashboard.jsx")
 );
 
-const UserTemporaryPassword = lazy(
-  () => import("../pages/examiner/userTemporaryPassword.jsx"),
+const District_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/District_Common_Dashboard.jsx")
 );
 
-const Navbaradd = lazy(() => import("../pages/UserRoll/Navbaradd.jsx"));
-const Rollmaster = lazy(() => import("../pages/UserRoll/Rollmaster.jsx"));
-const RollexaminerUpdate = lazy(
-  () => import("../pages/UserRoll/RollexaminerUpdate.jsx"),
+const DataBackup = lazy(() => 
+  import("../pages/Databackup/DataBackup.jsx")
 );
-const Userrolemaster = lazy(
-  () => import("../pages/UserRoleMaster/Userrolemaster.jsx"),
+
+const AdminWindowsql = lazy(() => 
+  import("../pages/adminwindow/AdminWindowsql.jsx")
 );
+
+const ExaminerResetPassword = lazy(() => 
+  import("../pages/examiner/resetPassword.jsx")
+);
+
+const District_Dashboard = lazy(() => 
+  import("../pages/Dashboard/District_Dashboard/District_Dashboard.jsx")
+);
+
+const State_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/State_common_Dashboard.jsx")
+);
+
+const State_Dashboard = lazy(() => 
+  import("../pages/Dashboard/State_Dashboard/State_Dashboard.jsx")
+);
+
+const Zone_common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/Zone_common_Dashboard.jsx")
+);
+
+const ExaminerLoginStatus = lazy(() => 
+  import("../pages/ExaminerLoginStatus/ExaminerLoginStatus.jsx")
+);
+
+const UserTemporaryPassword = lazy(() => 
+  import("../pages/examiner/userTemporaryPassword.jsx")
+);
+
+const Navbaradd = lazy(() => 
+  import("../pages/UserRoll/Navbaradd.jsx")
+);
+
+const Rollmaster = lazy(() => 
+  import("../pages/UserRoll/Rollmaster.jsx")
+);
+
+const RollexaminerUpdate = lazy(() => 
+  import("../pages/UserRoll/RollexaminerUpdate.jsx")
+);
+
+const Userrolemaster = lazy(() => 
+  import("../pages/UserRoleMaster/Userrolemaster.jsx")
+);
+
 // Role-specific common dashboards
-const HeadMaster_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/HeadMaster_Common_Dashboard.jsx"),
-);
-const DistrictOfficials_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/DistrictOfficials_Common_Dashboard.jsx"),
-);
-const StateCoordinator_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/StateCoordinator_Common_Dashboard.jsx"),
-);
-const StateAssistant_Common_Dashboard = lazy(
-  () => import("../pages/Dashboard/Common/StateAssistant_Common_Dashboard.jsx"),
-);
-// Add more lazy imports for other pages as needed
-const UserPassword = lazy(() => import("../pages/examiner/userPassword.jsx"));
-
-const Vacancy_master_Dashboard = lazy(
-  () => import("../pages/Dashboard/Master_Dashboard/Vacancy_master_Dashboard.jsx"),
+const HeadMaster_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/HeadMaster_Common_Dashboard.jsx")
 );
 
-const PagenotFound = lazy(
-  () => import("../pages/Dashboard/Pagenotfound/PagenotFound.jsx"),
+const DistrictOfficials_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/DistrictOfficials_Common_Dashboard.jsx")
+);
+
+const StateCoordinator_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/StateCoordinator_Common_Dashboard.jsx")
+);
+
+const StateAssistant_Common_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Common/StateAssistant_Common_Dashboard.jsx")
+);
+
+const UserPassword = lazy(() => 
+  import("../pages/examiner/userPassword.jsx")
+);
+
+const Vacancy_master_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Master_Dashboard/Vacancy_master_Dashboard.jsx")
+);
+
+const Master_Data_Dashboard = lazy(() => 
+  import("../pages/Dashboard/Master_Dashboard/Master_Data_Dashboard.jsx")
+);
+
+const Student_master_Dashboard = lazy(() => 
+  import("../pages/masterData/MasterData.jsx")
+);
+
+const PagenotFound = lazy(() => 
+  import("../pages/Dashboard/Pagenotfound/PagenotFound.jsx")
 );
 
 // Loading fallback component
@@ -192,15 +224,21 @@ const router = createBrowserRouter(
         />
         <Route
           path="/district-officials/common/dashboard"
-          element={<LazyRoute component={DistrictOfficials_Common_Dashboard} />}
+          element={
+            <LazyRoute component={DistrictOfficials_Common_Dashboard} />
+          }
         />
         <Route
           path="/state-coordinator/common/dashboard"
-          element={<LazyRoute component={StateCoordinator_Common_Dashboard} />}
+          element={
+            <LazyRoute component={StateCoordinator_Common_Dashboard} />
+          }
         />
         <Route
           path="/state-assistant/common/dashboard"
-          element={<LazyRoute component={StateAssistant_Common_Dashboard} />}
+          element={
+            <LazyRoute component={StateAssistant_Common_Dashboard} />
+          }
         />
         <Route
           path="/examiner/resetpassword"
@@ -222,6 +260,15 @@ const router = createBrowserRouter(
           path="/master_data/Vacancy_master"
           element={<LazyRoute component={Vacancy_master_Dashboard} />}
         />
+        <Route
+          path="/master_data/master_dashboard"
+          element={<LazyRoute component={Master_Data_Dashboard} />}
+        />
+        {/* <Route
+          path="/master_data/Student_master"
+          element={<LazyRoute component={Student_master_Dashboard} />}
+        /> */}
+        
       </Route>
       {/* Catch-all 404 */}
       <Route path="*" element={<LazyRoute component={PagenotFound} />} />
@@ -239,3 +286,5 @@ const AppRouter = () => {
 };
 
 export default AppRouter;
+
+

@@ -150,6 +150,11 @@ module.exports = (sequelize, DataTypes) => {
             msg: 'Vacancy Standard must not exceed 2 characters'
           }
         }
+      },
+      filledVacancy: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
       }
     },
     {

@@ -13,11 +13,14 @@ const getVacancyData = asyncHandler(async (req, res) => {
 
     if(dcode != 'ALL') {
         const vacancyData = await Vacancy_master.findAll({
-            where: { dCode: dcode }
+            where: { dCode: dcode },
+            order: [['Vacancy_Type', 'ASC'], ['Zone_Code', 'ASC'], ['student_type', 'ASC'],['seq', 'ASC']]
         });
         res.json(vacancyData);
     } else {
-        const vacancyData = await Vacancy_master.findAll();
+        const vacancyData = await Vacancy_master.findAll({
+            order: [['Vacancy_Type', 'ASC'], ['Zone_Code', 'ASC'], ['student_type', 'ASC'],['seq', 'ASC']]
+        });
         res.json(vacancyData);
     }
     
