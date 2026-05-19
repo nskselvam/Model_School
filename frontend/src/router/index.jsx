@@ -121,6 +121,9 @@ const Student_master_Dashboard = lazy(() =>
 const PagenotFound = lazy(() => 
   import("../pages/Dashboard/Pagenotfound/PagenotFound.jsx")
 );
+const Master_Data_District = lazy(() => 
+  import("../pages/Dashboard/Master_Dashboard/Master_Data_District.jsx")
+);
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -264,6 +267,11 @@ const router = createBrowserRouter(
           path="/master_data/master_dashboard"
           element={<LazyRoute component={Master_Data_Dashboard} />}
         />
+        <Route
+          path="/master_data/district_data"
+          element={<LazyRoute component={Master_Data_District} />}
+        />
+
         {/* <Route
           path="/master_data/Student_master"
           element={<LazyRoute component={Student_master_Dashboard} />}

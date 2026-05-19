@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import DataTable from 'react-data-table-component/dist/index.es.js'
 import { useGetMasterDataQuery } from '../../../redux-slice/masterApiSlice'
-import { useGetDistrictMasterDataQuery } from '../../../redux-slice/vacancyApiSlice'
+import { useGetDistrictMasterDataQuery ,useDistrictSendDataMutation} from '../../../redux-slice/vacancyApiSlice'
 import * as XLSX from 'xlsx'
 import axios from 'axios'
 import { toast } from 'react-toastify'
@@ -14,6 +14,8 @@ const Master_Data_Dashboard = () => {
     
     const { data, isLoading, error } = useGetMasterDataQuery();
     const { data: districtMasterData, isLoading: isDistrictMasterDataLoading } = useGetDistrictMasterDataQuery();
+
+    const [districtSendData] = useDistrictSendDataMutation();
     
     const [searchText, setSearchText] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState("ALL");
@@ -94,6 +96,18 @@ const Master_Data_Dashboard = () => {
         }
 
         setSendingData(true);
+        console.log("Sending selected data to backend:", selectedRows);
+
+        try {
+            const response = await districtSendData(selectedRows).unwrap();
+            toast.success(response?.message || 'Data sent successfully');
+            setSelectedRows([]);
+            setSelectAll(false);
+        } catch (error) {
+            toast.error(error?.data?.message || 'Failed to send data');
+        } finally {
+            setSendingData(false);
+        }
         // try {
         //     const response = await axios.post('/api/master/send_selected_data', {
         //         selectedData: selectedRows

@@ -177,7 +177,60 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(1),
         allowNull: true,
         defaultValue: 'N'
-      }
+      },
+
+      candidate_status: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1,
+        comment: '1=Present, 2=Not Eligible, 3=Not Willing, 4=Absent'
+      },
+      candidate_preferences: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        comment: 'Comma-separated preference codes: e.g., "1,2,3"'
+      },
+      ph: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0
+      },
+      birth_certificate_path: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      community_certificate_path: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      aadhar_card_path: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      other_certificate_path: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      birth_certificate_key: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      community_certificate_key: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      aadhar_card_key: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      other_certificate_key: {
+        type: DataTypes.STRING(500),
+        allowNull: true
+      },
+      remarks: {
+        type: DataTypes.TEXT,
+        allowNull: true
+      },
     },
     {
       tableName: 'master_11',

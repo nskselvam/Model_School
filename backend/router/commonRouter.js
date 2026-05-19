@@ -2,7 +2,7 @@ const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const upload = require('../utils/fileupload');
+const { upload } = require('../utils/fileupload');
 const { fetch_Master_Data, upload_Question_Paper_Key, table_data_where, master_Valid_Sections_Cross_Check, master_Data, master_Data_Register, master_Role_Register, generalMasterData, valid_Ip_Register, getUserAttendanceLogs, getUserAttendanceSummary } = require('../controller/commonController');
 const { protect ,modalprotect} = require('../middleware/authMiddleware');
 

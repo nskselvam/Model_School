@@ -28,4 +28,4 @@ GET http://localhost:8000/api/master/get_district_master_data
 
 
 ###
-
+GET http://localhost:8000/api/master/get_district_selected_data

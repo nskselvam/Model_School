@@ -17,8 +17,39 @@ export const vacancyApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["VacancyData"],
     }),
+    districtSendData: builder.mutation({
+      query: (data) => ({
+        url: `/api/master/district_send_data`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["VacancyData", "DistrictSelectedData"],
+    }),
+
+    getDistrictSelectedData: builder.query({
+      query: () => ({
+        url: `/api/master/get_district_selected_data`,
+        method: "GET",
+      }),
+      providesTags: ["DistrictSelectedData"],
+    }),
+
+    updateDistrictData: builder.mutation({
+      query: (data) => ({
+        url: `/api/master/update_district_data`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["DistrictSelectedData"],
+    }),
   }),
 });
 
 
-export const { useGetVacancyDataQuery,useGetDistrictMasterDataQuery } = vacancyApiSlice;
+export const { 
+  useGetVacancyDataQuery,
+  useGetDistrictMasterDataQuery,
+  useDistrictSendDataMutation,
+  useGetDistrictSelectedDataQuery,
+  useUpdateDistrictDataMutation 
+} = vacancyApiSlice;
