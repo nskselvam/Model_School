@@ -8,10 +8,14 @@ const { uploadCertificateToS3 } = require("../utils/s3Upload");
 
 const getDistrictMasterData = asyncHandler(async (req, res) => {
 
+    console.log("District Code:", req.body);
+
 
     const masterData = await db.Master_11.findAll({
-        where: { selFlg: 'Y' },
-        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name', 'candidate_option']
+        where: { selFlg: 'Y' ,
+            distFlg: 'N'
+        },
+        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name','Student_Status']
     });
 
     // Format the DOB field to dd-mm-yyyy
@@ -82,11 +86,22 @@ const districtSendData = asyncHandler(async (req, res) => {
 
 const getDistrictSelectedData = asyncHandler(async (req, res) => {
 
+    console.log("District Code for selected data:", req.query);
+    const { Centre_Code } = req.query;
+
+    const whereCondition = { 
+        selFlg: 'Y',
+        distFlg: 'Y'
+    };
+
+    // Add district filter if Centre_Code is provided
+    if (Centre_Code && Centre_Code !== '00') {
+        whereCondition.Cen_Code = Centre_Code;
+    }
+
    const masterData = await db.Master_11.findAll({
-        where: { selFlg: 'Y' ,
-            distFlg: 'Y'
-        },
-        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name', 'candidate_status', 'candidate_preferences', 'remarks']
+        where: whereCondition,
+        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name', 'candidate_status', 'candidate_preferences', 'remarks','Student_Status']
     });
 
     // Mapping for preferences

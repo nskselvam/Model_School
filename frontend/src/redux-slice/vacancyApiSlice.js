@@ -27,9 +27,10 @@ export const vacancyApiSlice = apiSlice.injectEndpoints({
     }),
 
     getDistrictSelectedData: builder.query({
-      query: () => ({
+      query: (data) => ({
         url: `/api/master/get_district_selected_data`,
         method: "GET",
+        params: data,
       }),
       providesTags: ["DistrictSelectedData"],
     }),

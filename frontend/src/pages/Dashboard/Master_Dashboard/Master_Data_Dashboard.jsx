@@ -19,6 +19,7 @@ const Master_Data_Dashboard = () => {
     
     const [searchText, setSearchText] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState("ALL");
+    const [selectedStudentStatus, setSelectedStudentStatus] = useState(1); // 1: Model School (default)
     const [selectedRows, setSelectedRows] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
     const [sendingData, setSendingData] = useState(false);
@@ -138,11 +139,18 @@ const Master_Data_Dashboard = () => {
         return districtMasterData.filter(district => district.DCODE === userDistrictCode);
     }, [districtMasterData, userDistrictCode]);
 
-    // Filter data based on district and search
+    // Filter data based on student status, district and search
     const filteredData = useMemo(() => {
         if (!data?.data) return [];
         
         let filtered = data.data;
+        
+        // Filter by Student Status
+        if (selectedStudentStatus) {
+            filtered = filtered.filter(item => 
+                item.Student_Status === parseInt(selectedStudentStatus)
+            );
+        }
         
         // Filter by district (case-insensitive comparison)
         if (selectedDistrict !== "ALL") {
@@ -173,7 +181,7 @@ const Master_Data_Dashboard = () => {
         setSelectAll(false);
         
         return filtered;
-    }, [data, selectedDistrict, searchText]);
+    }, [data, selectedStudentStatus, selectedDistrict, searchText]);
 
     // Define columns for DataTable
     const columns = [
@@ -358,26 +366,38 @@ const Master_Data_Dashboard = () => {
                     <h4 className="mb-0">Master Data Dashboard</h4>
                 </div>
                 <div className="card-body">
-                    {/* District Filter and Actions */}
+                    {/* Student Status and Action Buttons in Same Row */}
                     <div className="mb-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
                         <div className="d-flex align-items-center gap-2">
                             <label className="form-label mb-0" style={{ whiteSpace: 'nowrap' }}>
-                                <strong>Filter by District:</strong>
+                                <strong>Student Status:</strong>
                             </label>
-                            <select 
-                                className="form-select"
-                                style={{ minWidth: '250px' }}
-                                value={selectedDistrict}
-                                onChange={(e) => setSelectedDistrict(e.target.value)}
-                                disabled={userDistrictCode !== "00"}
-                            >
-                                <option value="ALL">All Districts</option>
-                                {districtOptions.map((district) => (
-                                    <option key={district.DCODE} value={district.DNAME}>
-                                        {district.DNAME} ({district.DCODE})
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="btn-group" role="group">
+                                <button
+                                    type="button"
+                                    className={`btn ${selectedStudentStatus === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
+                                    onClick={() => setSelectedStudentStatus(1)}
+                                    style={{
+                                        fontWeight: selectedStudentStatus === 1 ? '600' : '500',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    <i className="bi bi-building me-2"></i>
+                                    Model School
+                                </button>
+                                <button
+                                    type="button"
+                                    className={`btn ${selectedStudentStatus === 2 ? 'btn-primary' : 'btn-outline-primary'}`}
+                                    onClick={() => setSelectedStudentStatus(2)}
+                                    style={{
+                                        fontWeight: selectedStudentStatus === 2 ? '600' : '500',
+                                        transition: 'all 0.3s ease'
+                                    }}
+                                >
+                                    <i className="bi bi-door-open me-2"></i>
+                                    Government School
+                                </button>
+                            </div>
                         </div>
                         <div className="d-flex flex-wrap align-items-center gap-2">
                             {selectedRows.length > 0 && (
@@ -443,9 +463,28 @@ const Master_Data_Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Search */}
-                    <div className="mb-3 row">
-                        <div className="col-md-6">
+                    {/* District Filter and Search in Same Row */}
+                    <div className="mb-3 d-flex flex-wrap align-items-center gap-3">
+                        <div className="d-flex align-items-center gap-2">
+                            <label className="form-label mb-0" style={{ whiteSpace: 'nowrap' }}>
+                                <strong>District:</strong>
+                            </label>
+                            <select 
+                                className="form-select"
+                                style={{ minWidth: '200px' }}
+                                value={selectedDistrict}
+                                onChange={(e) => setSelectedDistrict(e.target.value)}
+                                disabled={userDistrictCode !== "00"}
+                            >
+                                <option value="ALL">All Districts</option>
+                                {districtOptions.map((district) => (
+                                    <option key={district.DCODE} value={district.DNAME}>
+                                        {district.DNAME} ({district.DCODE})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="flex-grow-1" style={{ maxWidth: '500px' }}>
                             <input
                                 type="text"
                                 className="form-control"

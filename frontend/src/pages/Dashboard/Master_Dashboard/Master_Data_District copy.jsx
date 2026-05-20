@@ -689,15 +689,16 @@ const Master_Data_District = () => {
     // Generate PDF for a single candidate (2 cards per page - landscape A4)
     const generateSingleCandidatePDF = (row) => {
         const doc = new jsPDF({
-            orientation: 'portrait',
+            orientation: 'landscape',
             unit: 'mm',
             format: 'a4'
         });
 
-        const pageWidth = 210; // A4 portrait width
-        const pageHeight = 297; // A4 portrait height
-        const margin = 15;
-        const contentWidth = pageWidth - (margin * 2);
+        const pageWidth = 297; // A4 landscape width
+        const pageHeight = 210; // A4 landscape height
+        const cardWidth = pageWidth / 2; // Split page into two equal parts
+        const margin = 10;
+        const contentWidth = cardWidth - (margin * 2);
 
         // Get candidate preferences
         const prefs = [];
@@ -712,111 +713,111 @@ const Master_Data_District = () => {
         const statusMap = { 1: 'Present', 2: 'Not Eligible', 3: 'Not Willing', 4: 'Absent' };
         const statusText = statusMap[row.candidate_status] || 'Not Selected';
 
-        let yPos = 25;
+        // Function to draw card content
+        const drawCard = (xOffset) => {
+            let yPos = 20;
+            
+            // Title/Heading
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.text('CANDIDATE INFORMATION', xOffset + margin + (contentWidth / 2), yPos, { align: 'center' });
+            
+            yPos += 15;
+            
+            // Draw border
+            doc.setLineWidth(0.5);
+            doc.rect(xOffset + margin, yPos - 5, contentWidth, 130);
+            
+            // Content
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            
+            // EMIS No
+            doc.setFont('helvetica', 'bold');
+            doc.text('EMIS No:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(row.Emis_No || '', xOffset + margin + 50, yPos);
+            yPos += 8;
+            
+            // Student Name
+            doc.setFont('helvetica', 'bold');
+            doc.text('Student Name:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(row.name || '', xOffset + margin + 50, yPos);
+            yPos += 8;
+            
+            // Father Name
+            doc.setFont('helvetica', 'bold');
+            doc.text('Father Name:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(row.father_name || '', xOffset + margin + 50, yPos);
+            yPos += 8;
+            
+            // DOB
+            doc.setFont('helvetica', 'bold');
+            doc.text('Date of Birth:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(row.dob || '', xOffset + margin + 50, yPos);
+            yPos += 8;
+            
+            // Community
+            doc.setFont('helvetica', 'bold');
+            doc.text('Community:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(getCommunityName(row.com), xOffset + margin + 50, yPos);
+            yPos += 8;
+            
+            // School Name
+            doc.setFont('helvetica', 'bold');
+            doc.text('School:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            const schoolText = row.school_name || '';
+            const schoolLines = doc.splitTextToSize(schoolText, contentWidth - 40);
+            doc.text(schoolLines, xOffset + margin + 50, yPos);
+            yPos += (schoolLines.length * 5) + 8;
+            
+            // Candidate Status
+            doc.setFont('helvetica', 'bold');
+            doc.text('Candidate Status:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(statusText, xOffset + margin + 50, yPos);
+            yPos += 10;
+            
+            // Candidate Preferences
+            doc.setFont('helvetica', 'bold');
+            doc.text('Preferences:', xOffset + margin + 5, yPos);
+            doc.setFont('helvetica', 'normal');
+            const prefLines = doc.splitTextToSize(preferencesText, contentWidth - 40);
+            doc.text(prefLines, xOffset + margin + 50, yPos);
+            
+            // Signature Section
+            yPos = 155; // Fixed position for signatures
+            
+            // Candidate Signature
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(10);
+            doc.text('Candidate Signature', xOffset + margin + 15, yPos);
+            // Signature line
+            doc.setLineWidth(0.3);
+            doc.line(xOffset + margin + 10, yPos - 15, xOffset + margin + 50, yPos - 15);
+            
+            // Head Master Signature
+            doc.text('Head Master Signature', xOffset + margin + contentWidth - 50, yPos);
+            // Signature line
+            doc.line(xOffset + margin + contentWidth - 55, yPos - 15, xOffset + margin + contentWidth - 15, yPos - 15);
+        };
+
+        // Draw left card (first copy)
+        drawCard(0);
         
-        // Title/Heading
-        doc.setFontSize(18);
-        doc.setFont('helvetica', 'bold');
-        doc.text('CANDIDATE INFORMATION', pageWidth / 2, yPos, { align: 'center' });
-        
-        yPos += 15;
-        
-        // Draw outer border
-        doc.setLineWidth(0.8);
-        doc.rect(margin, yPos - 5, contentWidth, 200);
-        
-        yPos += 10;
-        
-        // Content
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        
-        // EMIS No
-        doc.setFont('helvetica', 'bold');
-        doc.text('EMIS No:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(row.Emis_No || '', margin + 60, yPos);
-        yPos += 12;
-        
-        // Student Name
-        doc.setFont('helvetica', 'bold');
-        doc.text('Student Name:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(row.name || '', margin + 60, yPos);
-        yPos += 12;
-        
-        // Father Name
-        doc.setFont('helvetica', 'bold');
-        doc.text('Father Name:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(row.father_name || '', margin + 60, yPos);
-        yPos += 12;
-        
-        // DOB
-        doc.setFont('helvetica', 'bold');
-        doc.text('Date of Birth:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(row.dob || '', margin + 60, yPos);
-        yPos += 12;
-        
-        // Community
-        doc.setFont('helvetica', 'bold');
-        doc.text('Community:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(getCommunityName(row.com), margin + 60, yPos);
-        yPos += 12;
-        
-        // Gender
-        doc.setFont('helvetica', 'bold');
-        doc.text('Gender:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(getGenderName(row.sex), margin + 60, yPos);
-        yPos += 12;
-        
-        // School Name
-        doc.setFont('helvetica', 'bold');
-        doc.text('School:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        const schoolText = row.school_name || '';
-        const schoolLines = doc.splitTextToSize(schoolText, contentWidth - 70);
-        doc.text(schoolLines, margin + 60, yPos);
-        yPos += (schoolLines.length * 6) + 12;
-        
-        // Candidate Status
-        doc.setFont('helvetica', 'bold');
-        doc.text('Candidate Status:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        doc.text(statusText, margin + 60, yPos);
-        yPos += 15;
-        
-        // Candidate Preferences
-        doc.setFont('helvetica', 'bold');
-        doc.text('Preferences:', margin + 10, yPos);
-        doc.setFont('helvetica', 'normal');
-        const prefLines = doc.splitTextToSize(preferencesText, contentWidth - 70);
-        doc.text(prefLines, margin + 60, yPos);
-        
-        // Signature Section
-        yPos = 240; // Fixed position for signatures
-        
-        // Draw signature lines
+        // Draw vertical line in the middle
         doc.setLineWidth(0.3);
+        doc.setLineDash([2, 2]);
+        doc.line(pageWidth / 2, 10, pageWidth / 2, pageHeight - 10);
+        doc.setLineDash([]);
         
-        // Candidate Signature (left side)
-        const leftLineStart = margin + 10;
-        const leftLineEnd = margin + 70;
-        const leftCenter = leftLineStart + (leftLineEnd - leftLineStart) / 2;
-        doc.line(leftLineStart, yPos - 10, leftLineEnd, yPos - 10);
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.text('Candidate Signature', leftCenter, yPos, { align: 'center' });
-        
-        // Head Master Signature (right side)
-        const rightLineStart = pageWidth - margin - 70;
-        const rightLineEnd = pageWidth - margin - 10;
-        const rightCenter = rightLineStart + (rightLineEnd - rightLineStart) / 2;
-        doc.line(rightLineStart, yPos - 10, rightLineEnd, yPos - 10);
-        doc.text('Head Master Signature', rightCenter, yPos, { align: 'center' });
+        // Draw right card (second copy - duplicate)
+        drawCard(pageWidth / 2);
 
         const filename = `Candidate_${row.Emis_No}_${row.name.replace(/\s+/g, '_')}.pdf`;
         doc.save(filename);
