@@ -1,7 +1,8 @@
 const express = require("express");
+
 const asyncHandler = require("express-async-handler");
 const db = require("../db/models");
-const { Sequelize, Op } = require("sequelize");
+const { Sequelize, Op, or, where } = require("sequelize");
 
 
 const upDataMasterDataController = asyncHandler(async (req, res) => {
@@ -50,7 +51,7 @@ const getUserDetailsOriginal = asyncHandler(async (req, res) => {
 const getUserDetailsInsert = asyncHandler(async (req, res) => {
   try {
     const userDetails = await db.sequelize.query(
-      'SELECT * FROM "Master_11_clone"',
+      'SELECT * FROM "New_356"',
       {
         type: Sequelize.QueryTypes.SELECT,
         raw: true
@@ -68,7 +69,7 @@ const getUserDetailsInsert = asyncHandler(async (req, res) => {
         management: record.management,
         category: record.category,
         cate_type: record.cate_type,
-        Emis_No: record.Emis_No,
+        Emis_No: record.user_id,
         name: record.name,
         Gender_Label: record.Gender_Label,
         dob_emis: record.dob_emis,
@@ -79,20 +80,21 @@ const getUserDetailsInsert = asyncHandler(async (req, res) => {
         Disability_Name: record.Disability_Name,
         community_name: record.community_name,
         Medium: record.Medium,
-        Gdc_DOB: record.Gdc_DOB,
-        Gdc_Gender: record.Gdc_Gender,
-        Gdc_Medium: record.Gdc_Medium,
-        Cen_Code: record.Cen_Code,
+        // Gdc_DOB: record.Gdc_DOB,
+        // Gdc_Gender: record.Gdc_Gender,
+        // Gdc_Medium: record.Gdc_Medium,
+        // Cen_Code: record.Cen_Code,
         com: record.com,
         sex: record.sex,
         pstm: record.pstm,
         dob: record.dob,
+        ph: record.ph,
         Student_Status: record.Student_Status,
         Zone_Jee: record.Zone_Jee,
         Zone_Neet: record.Zone_Neet,
         Zone_Name_Jee: record.Zone_Name_Jee,
         Zone_Name_Neet: record.Zone_Name_Neet
-      }); 
+      });
     }
 
     res.status(200).json({
@@ -108,4 +110,193 @@ const getUserDetailsInsert = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { upDataMasterDataController, getUserDetailsOriginal, getUserDetailsInsert };
+
+const generateRank = asyncHandler(async (req, res) => {
+
+
+  let rank = 244279;
+  const masterData = await db.Master_11.findAll({
+    where: { ORANK: null },
+    attributes: ['id', 'MRK03', 'MRK04', 'MRKTOTAL', 'Emis_No', 'name', 'dob'],
+    order: [['MRKTOTAL', 'DESC'],
+    ['MRK03', 'DESC'],
+    ['MRK04', 'DESC'],
+    ['dob', 'ASC'],
+    ['name', 'ASC']
+    ]
+  });
+
+  // return
+
+  for (const record of masterData) {
+    await db.Master_11.update(
+      { ORANK: rank },
+      {
+        where: {
+          id: record.id
+        }
+      }
+    );
+    rank++;
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Rank generated successfully"
+  });
+
+});
+
+const vacancyAllot = asyncHandler(async (req, res) => {
+
+
+  const vacancyData = await db.Vacancy_Master.findAll({
+    where: {
+      [Op.and]: [
+        Sequelize.literal('"vac" > "filledVacancy"')
+      ],
+      Student_Status: 1,
+      Vacancy_Type: 1,
+      Zone_Code: 1
+    },
+    order: [['Student_Status', 'ASC'],
+    ['Vacancy_Type', 'ASC'],
+    ['Zone_Code', 'ASC'],
+    ['seq', 'ASC']
+    ]
+  });
+
+
+
+  for (const record of vacancyData) {
+    const vacancyType = record.Vacancy_Type;
+    const zoneCode = record.Zone_Code;
+    const studentStatus = record.Student_Status;
+    const communtiy = record.Com;
+    const vacanyCnt = record.vac ;
+    const phstatus = record.ph;
+    let selcat = `${record.REM}-${record.REM1}-${record.REM2}`;
+    if (record.REM3 !=null) {
+      selcat += `-${record.REM3}`;
+    }
+
+    let MasterData
+
+    const whereConditon = {
+      Student_Status: studentStatus
+    };
+
+    if (vacancyType == 1) {
+      whereConditon.Zone_Jee = zoneCode;
+    } else if (vacancyType == 2) {
+      whereConditon.Zone_Neet = zoneCode;
+    }
+    console.log(whereConditon,communtiy, phstatus);
+
+    if (communtiy == 5 && phstatus == 1) {
+      MasterData = await db.Master_11.findAll({
+        where: {
+          ...whereConditon,
+          sex: record.sex,
+          ph: phstatus,
+          selcat: null
+        },
+        order: [['ORANK', 'ASC']]
+      });
+    } else if (communtiy == 5 && phstatus == 0) {
+      MasterData = await db.Master_11.findAll({
+        where: {
+          ...whereConditon,
+          sex: record.sex,
+          selcat: null
+        },
+        order: [['ORANK', 'ASC']]
+      });
+    } else if (communtiy != 5) {
+      if (communtiy== 1 && phstatus == 1) {
+        MasterData = await db.Master_11.findAll({
+          where: {
+            ...whereConditon,
+             sex: record.sex,
+            [Op.or]: [
+              { com: communtiy},
+
+              { com: 6 }
+            ],
+            ph: phstatus,
+            selcat: null
+          },
+          order: [['ORANK', 'ASC']]
+        });
+      } else if (communtiy== 1 && phstatus == 0) {
+        MasterData = await db.Master_11.findAll({
+          where: {
+            ...whereConditon,
+             sex: record.sex,
+            [Op.or]: [
+              { com: communtiy},
+              { com: 6 }
+            ],
+            selcat: null
+          },
+          order: [['ORANK', 'ASC']]
+        });
+      } else if (communtiy != 1 && phstatus == 1) {
+        MasterData = await db.Master_11.findAll({
+          where: {
+            ...whereConditon,
+             sex: record.sex,
+            com: communtiy,
+            ph: phstatus,
+            selcat: null
+          },
+          order: [['ORANK', 'ASC']]
+        });
+      } else if (communtiy != 1 && phstatus == 0) {
+        MasterData = await db.Master_11.findAll({
+          where: {
+            ...whereConditon,
+             sex: record.sex,
+            com: communtiy,
+            selcat: null
+          },
+          order: [['ORANK', 'ASC']]
+        });
+      }
+    }
+    console.log(MasterData.length, vacanyCnt);
+
+    
+    for (let i = 0; i < MasterData.length && i < vacanyCnt; i++) {
+      const studentRecord = MasterData[i];
+   
+      await db.Master_11.update(
+        { selcat: vacancyType, selcom: communtiy, selpstm: record.pstm, selsex: record.sex,
+          selcat: selcat+(`-${i+1}/${vacanyCnt}`),  selFlg: 'Y'
+         },
+        {
+          where: {
+            id: studentRecord.id
+          }
+        }
+      );
+    }
+    const filledVacancy = await db.Vacancy_Master.update(
+      { filledVacancy: record.filledVacancy + Math.min(MasterData.length, vacanyCnt) },
+      {
+        where: {
+          id: record.id
+        }
+      }
+    );
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: vacancyData
+  });
+
+});
+
+
+module.exports = { upDataMasterDataController, getUserDetailsOriginal, getUserDetailsInsert, generateRank, vacancyAllot };
