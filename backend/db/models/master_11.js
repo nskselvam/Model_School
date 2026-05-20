@@ -211,26 +211,60 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING(500),
         allowNull: true
       },
-      birth_certificate_key: {
-        type: DataTypes.STRING(500),
-        allowNull: true
-      },
-      community_certificate_key: {
-        type: DataTypes.STRING(500),
-        allowNull: true
-      },
-      aadhar_card_key: {
-        type: DataTypes.STRING(500),
-        allowNull: true
-      },
-      other_certificate_key: {
-        type: DataTypes.STRING(500),
-        allowNull: true
-      },
+    
       remarks: {
         type: DataTypes.TEXT,
         allowNull: true
       },
+      MARK01: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      MARK02: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      MARK03: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      MARK04: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      MARK05: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      TOTAL: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      PASS: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      REGNO: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+      MRK03: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      MRK04: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      MRKTOTAL: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+      ORANK: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+      },
+
     },
     {
       tableName: 'master_11',
