@@ -6,7 +6,8 @@ const {
   getDistrictMasterData,
   districtSendData,
   getDistrictSelectedData,
-  updateDistrictData
+  updateDistrictData,
+  getDashboardStatistics
 } = require("../controller/masterOperatonController");
 const { modalprotect } = require("../middleware/authMiddleware");
 
@@ -67,6 +68,7 @@ console.log(`📁 Certificate upload storage: ${USE_S3 ? 'AWS S3' : 'Local Disk'
 router.get("/get_district_master_data", getDistrictMasterData);
 router.post("/district_send_data", districtSendData);
 router.get("/get_district_selected_data", getDistrictSelectedData);
+router.get("/dashboard_statistics", getDashboardStatistics);
 router.put("/update_district_data", upload.fields([
   { name: 'birthCertificate', maxCount: 1 },
   { name: 'communityCertificate', maxCount: 1 },

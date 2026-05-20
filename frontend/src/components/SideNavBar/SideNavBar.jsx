@@ -60,7 +60,7 @@ const SideNavBar = ({ isCollapsed, setIsCollapsed }) => {
   const { userInfo } = useSelector((state) => state.auth)
   console.log(userInfo)
   // Use selected_role (the role the user chose at login/pin screen)
-  const currentUserType = userInfo?.selected_role ?? userInfo?.user_Type ?? userInfo?.userType ?? userInfo?.role ?? userInfo.Role 
+  const currentUserType = userInfo?.selected_role ?? userInfo?.selectedRole ?? userInfo?.user_Type ?? userInfo?.userType ?? userInfo?.role ?? userInfo?.Role 
 
 
 
@@ -77,13 +77,12 @@ const SideNavBar = ({ isCollapsed, setIsCollapsed }) => {
 
 
   // Calculate home route based on user role
-  const selectedRole = userInfo?.selected_role ?? userInfo?.selectedRole ?? userInfo?.role
+  const selectedRole = userInfo?.selected_role ?? userInfo?.selectedRole ?? userInfo?.role ?? userInfo?.Role
   const homeRoute = useMemo(() => {
     const roleKey = selectedRole !== undefined && selectedRole !== null ? String(selectedRole) : ''
 
-    if(roleKey == '0') return '/state/dashboard'
+    if(roleKey == '0' || roleKey == '2') return '/state/dashboard'
     if(roleKey == '1') return '/district/dashboard'
-    if(roleKey == '2') return '/candidate/dashboard'
     
     const route = navbarRoute[roleKey]
     if (!route) return '/'
@@ -118,11 +117,9 @@ const SideNavBar = ({ isCollapsed, setIsCollapsed }) => {
 
   
   const handleBack = () => {
-    if(currentUserType == '0'){
+    if(currentUserType == '0' || currentUserType == '2') {
       navigate('/state/common/dashboard')
-    } else if(currentUserType == '1'){
-      navigate('/district/common/dashboard')
-    }
+    } 
   }
 
   // Transform backend data to menu item structure
@@ -436,7 +433,7 @@ const SideNavBar = ({ isCollapsed, setIsCollapsed }) => {
               className="nav-item nav-back"
               title="Back"
             >
-              {currentUserType != '2' ? (
+              {currentUserType != '1' ? (
                 <>
                   <span className="nav-icon"><FaArrowLeft /></span>
                   <span className="nav-label">Back</span>

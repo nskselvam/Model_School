@@ -287,10 +287,194 @@ const updateDistrictData = asyncHandler(async (req, res) => {
 });
 
 
+const getDashboardStatistics = asyncHandler(async (req, res) => {
+    const { districtCode } = req.query;
+
+    // Build where condition - filter by selFlg = 'Y' (eligible candidates)
+    const whereCondition = { selFlg: 'Y' };
+
+    // Add district filter if provided and not '00' (all districts)
+    if (districtCode && districtCode !== '00') {
+        whereCondition.Cen_Code = districtCode;
+    }
+
+    try {
+        // Total eligible candidates
+        const totalCandidates = await db.Master_11.count({ where: whereCondition });
+
+        // Present count (candidate_status = 1)
+        const presentCount = await db.Master_11.count({
+            where: { ...whereCondition, candidate_status: 1 }
+        });
+
+        // Absent count (candidate_status = 4)
+        const absentCount = await db.Master_11.count({
+            where: { ...whereCondition, candidate_status: 4 }
+        });
+
+        // Disabled candidates (ph = 1)
+        const disabledCount = await db.Master_11.count({
+            where: { ...whereCondition, ph: 1 }
+        });
+
+        // Community distribution
+        const communityDistribution = await db.Master_11.findAll({
+            attributes: [
+                'com',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('com')), 'count']
+            ],
+            where: whereCondition,
+            group: ['com'],
+            raw: true
+        });
+
+        // Gender distribution
+        const genderDistribution = await db.Master_11.findAll({
+            attributes: [
+                'sex',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('sex')), 'count']
+            ],
+            where: whereCondition,
+            group: ['sex'],
+            raw: true
+        });
+
+        // School type distribution
+        const schoolTypeDistribution = await db.Master_11.findAll({
+            attributes: [
+                'school_type',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('school_type')), 'count']
+            ],
+            where: whereCondition,
+            group: ['school_type'],
+            raw: true
+        });
+
+        // Category distribution
+        const categoryDistribution = await db.Master_11.findAll({
+            attributes: [
+                'category',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('category')), 'count']
+            ],
+            where: whereCondition,
+            group: ['category'],
+            raw: true
+        });
+
+        // Candidate status breakdown
+        const candidatesByStatus = await db.Master_11.findAll({
+            attributes: [
+                'candidate_status',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('candidate_status')), 'count']
+            ],
+            where: whereCondition,
+            group: ['candidate_status'],
+            raw: true
+        });
+
+        // Management distribution
+        const managementDistribution = await db.Master_11.findAll({
+            attributes: [
+                'management',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('management')), 'count']
+            ],
+            where: whereCondition,
+            group: ['management'],
+            raw: true
+        });
+
+        // Student Status distribution (1=Model School, 2=Government School)
+        const studentStatusDistribution = await db.Master_11.findAll({
+            attributes: [
+                'Student_Status',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('Student_Status')), 'count']
+            ],
+            where: whereCondition,
+            group: ['Student_Status'],
+            raw: true
+        });
+
+        // Count for Model School and Government School
+        const modelSchoolCount = await db.Master_11.count({
+            where: { ...whereCondition, Student_Status: 1 }
+        });
+
+        const govtSchoolCount = await db.Master_11.count({
+            where: { ...whereCondition, Student_Status: 2 }
+        });
+
+        // District-wise present count (candidate_status = 1)
+        const districtWisePresentCount = await db.Master_11.findAll({
+            attributes: [
+                'Cen_Code',
+                'district_name',
+                [db.Sequelize.fn('COUNT', db.Sequelize.col('Cen_Code')), 'count']
+            ],
+            where: { selFlg: 'Y', candidate_status: 1 }, // Only present candidates
+            group: ['Cen_Code', 'district_name'],
+            order: [[db.Sequelize.literal('count'), 'DESC']],
+            raw: true
+        });
+
+        // Format data for response
+        res.json({
+            status: 'success',
+            data: {
+                totalCandidates,
+                presentCount,
+                absentCount,
+                disabledCount,
+                modelSchoolCount,
+                govtSchoolCount,
+                districtWisePresentCount: districtWisePresentCount.map(item => ({
+                    districtCode: item.Cen_Code,
+                    districtName: item.district_name || `District ${item.Cen_Code}`,
+                    count: parseInt(item.count)
+                })),
+                communityDistribution: communityDistribution.map(item => ({
+                    community: item.com,
+                    count: parseInt(item.count)
+                })),
+                genderDistribution: genderDistribution.map(item => ({
+                    gender: item.sex,
+                    count: parseInt(item.count)
+                })),
+                schoolTypeDistribution: schoolTypeDistribution.map(item => ({
+                    type: item.school_type,
+                    count: parseInt(item.count)
+                })),
+                categoryDistribution: categoryDistribution.map(item => ({
+                    category: item.category,
+                    count: parseInt(item.count)
+                })),
+                candidatesByStatus: candidatesByStatus.map(item => ({
+                    status: item.candidate_status,
+                    count: parseInt(item.count)
+                })),
+                managementDistribution: managementDistribution.map(item => ({
+                    management: item.management,
+                    count: parseInt(item.count)
+                })),
+                studentStatusDistribution: studentStatusDistribution.map(item => ({
+                    studentStatus: item.Student_Status,
+                    count: parseInt(item.count)
+                }))
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching dashboard statistics:", error);
+        res.status(500).json({
+            status: "error",
+            message: error.message || "Failed to fetch dashboard statistics"
+        });
+    }
+});
+
 module.exports = {
     getDistrictMasterData,
     districtSendData,
     getDistrictSelectedData,
-    updateDistrictData
+    updateDistrictData,
+    getDashboardStatistics
 }
 

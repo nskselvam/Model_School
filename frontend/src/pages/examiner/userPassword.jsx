@@ -165,7 +165,7 @@ const UserPassword = () => {
     // Prepare data for export
     const exportData = allData.map((row, index) => ({
       'S.No': index + 1,
-      'Candidate Name': row.candidateName,
+      'Candidate Name': row.User_Name,
       'Email ID': row.Email_Id,
       'Password': row.Temp_Password
     }))
@@ -197,7 +197,7 @@ const UserPassword = () => {
     // Add data starting from row 3
     const dataWithHeader = allData.map((row, index) => ({
       'S.No': index + 1,
-      'Candidate Name': row.candidateName,
+      'Candidate Name': row.User_Name,
       'Email ID': row.Email_Id,
       'Password': row.Temp_Password
     }))
@@ -274,7 +274,7 @@ const UserPassword = () => {
     },
     {
       name: 'Candidate Name',
-      selector: row => row.candidateName,
+      selector: row => row.User_Name,
       sortable: true,
       width: '250px',
       wrap: true

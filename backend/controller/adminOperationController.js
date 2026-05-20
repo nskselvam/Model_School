@@ -17,9 +17,9 @@ const getAllUserData = asyncHandler(async (req, res) => {
     const whereClause = {};
     if (search) {
         whereClause[Op.or] = [
-            { candidateName: { [Op.iLike]: `%${search}%` } },
-            { Email_Id:      { [Op.iLike]: `%${search}%` } },
-            { Rollno:        { [Op.iLike]: `%${search}%` } },
+            { User_Name: { [Op.iLike]: `%${search}%` } },
+            { Email_Id:  { [Op.iLike]: `%${search}%` } },
+            { User_Id:   { [Op.iLike]: `%${search}%` } },
         ];
     }
     if (resetPass !== undefined && resetPass !== '') {
@@ -30,12 +30,19 @@ const getAllUserData = asyncHandler(async (req, res) => {
         where: whereClause,
         limit,
         offset,
-        order: [['candidateName', 'ASC']],
+        order: [['User_Name', 'ASC']],
+    });
+
+    // Fetch role master data
+    const roleMasters = await db.user_role_masters.findAll({
+        attributes: ['user_role_code', 'user_role'],
+        order: [['user_role_code', 'ASC']]
     });
 
     res.status(200).json({
         status: 'success',
         data:  rows,
+        roleMasters: roleMasters,
         total: count,
         page,
         limit,
@@ -49,52 +56,46 @@ const getLoggedInUsers = asyncHandler(async (req, res) => {
         },
         attributes: [
             'id',
-            'Rollno',
-            'candidateName',
+            'User_Id',
+            'User_Name',
             'Email_Id',
             'Role',
-            'DCODE',
-            'DNAME',
-            'DIST_NAME',
+            'D_Code',
+            'Mobile_Number',
             'Login_Status',
             'User_Roll_Admin_0',
             'User_Roll_Admin_1',
             'User_Roll_Admin_2'
         ],
-        order: [['candidateName', 'ASC']]
+        order: [['User_Name', 'ASC']]
+    });
+
+    // Fetch role master data
+    const roleMasters = await db.user_role_masters.findAll({
+        attributes: ['user_role_code', 'user_role'],
+        order: [['user_role_code', 'ASC']]
     });
 
     res.status(200).json({
         status: 'success',
         data: loggedInUsers,
+        roleMasters: roleMasters,
         count: loggedInUsers.length
     });
 })
 
 const createUserData = asyncHandler(async (req, res) => {
-    const { Role, candidateName, Email_Id, DCODE, DNAME, DIST_NAME, SUB_CEN, Rollno, Reg_Status, Regulation } = req.body;
+    const { Role, User_Name, Email_Id, D_Code, Mobile_Number, Password } = req.body;
 
     // Validate required fields
-    if (!Role || !candidateName || !Email_Id) {
+    if (!Role || !User_Name || !Email_Id) {
         throw new AppError('Role, name, and email are required', 400);
     }
 
-    // Student-only required fields
-    if (String(Role) === '2') {
-        if (!DCODE || !DCODE.toString().trim()) {
-            throw new AppError('DCODE is required for Student User', 400);
-        }
-        if (!SUB_CEN || !SUB_CEN.toString().trim()) {
-            throw new AppError('Sub-center code is required for Student User', 400);
-        }
-        if (!Rollno || !Rollno.toString().trim()) {
-            throw new AppError('Roll number is required for Student User', 400);
-        }
-        if (Reg_Status === undefined || Reg_Status === null || Reg_Status === '') {
-            throw new AppError('Reg_Status is required for Student User (1 = Regular, 0 = Correspondence)', 400);
-        }
-        if (!['0', '1'].includes(String(Reg_Status))) {
-            throw new AppError('Reg_Status must be 1 (Regular) or 0 (Correspondence)', 400);
+    // District code validation for district users
+    if (String(Role) !== '0' && D_Code) {
+        if (!D_Code.toString().trim()) {
+            throw new AppError('D_Code is required for this user role', 400);
         }
     }
 
@@ -123,27 +124,18 @@ const createUserData = asyncHandler(async (req, res) => {
 
     // Build user data object with only essential fields
     const userData = {
-        candidateName: candidateName.trim(),
+        User_Name: User_Name.trim(),
         Email_Id: Email_Id.trim(),
         Role: Role.toString(),
-        User_Pass: hashedPassword,
+        Password: hashedPassword,
         Temp_Password: tempPassword,
-        ResetPass: 'N',  // User must reset password on first login (N = not reset)
-        Login_Status: 'N',  // Not logged in (N = no)
-        Mailer: 'N',  // Email not sent yet (N = no)
-        Reg_Status: String(Role) === '2' ? String(Reg_Status) : '1',
+        ResetPass: 'N',
         token_version: 0,
         [User_Roll_Admin_Field]: roleAdminData && roleAdminData.rollDescrption 
             ? JSON.parse(roleAdminData.rollDescrption).join(',') 
             : null,
-        ...(String(Role) === '2' ? {
-            DCODE: DCODE.toString().trim(),
-            DNAME: DNAME ? DNAME.toString().trim() : null,
-            DIST_NAME: DIST_NAME ? DIST_NAME.toString().trim() : null,
-            SUB_CEN: SUB_CEN.toString().trim(),
-            Rollno: Rollno.toString().trim(),
-            Regulation: Regulation ? Regulation.toString().trim() : null,
-        } : {})
+        ...(D_Code ? { D_Code: D_Code.toString().trim() } : {}),
+        ...(Mobile_Number ? { Mobile_Number: Mobile_Number.toString().trim() } : {})
     };
 
     // Create new user
@@ -159,7 +151,7 @@ const createUserData = asyncHandler(async (req, res) => {
         const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #2c3e50;">Welcome to Government Institution</h2>
-                <p>Hello <strong>${newUser.candidateName}</strong>,</p>
+                <p>Hello <strong>${newUser.User_Name}</strong>,</p>
                 <p>Your account has been created successfully. Below are your login credentials:</p>
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p style="margin: 5px 0;"><strong>Email:</strong> ${newUser.Email_Id}</p>
@@ -199,7 +191,7 @@ const createUserData = asyncHandler(async (req, res) => {
         message: 'User created successfully. Welcome email sent with temporary password.',
         data: {
             id: newUser.id,
-            candidateName: newUser.candidateName,
+            User_Name: newUser.User_Name,
             Email_Id: newUser.Email_Id,
             Role: newUser.Role,
             emailStatus: emailStatus,
@@ -476,7 +468,7 @@ const addUpdateSubjectData = asyncHandler(async (req, res) => {
 const updateGeneralBioData = asyncHandler(async (req, res) => {
 
     const {
-        candidateName,
+        User_Name,
         Email_Id,
         Mobile_Number,
         Role,
@@ -489,8 +481,8 @@ const updateGeneralBioData = asyncHandler(async (req, res) => {
         throw new AppError('User not found', 404);
     }
     
-    if (candidateName !== undefined) {
-        user.candidateName = candidateName;
+    if (User_Name !== undefined) {
+        user.User_Name = User_Name;
     }
     if (Email_Id !== undefined) {
         user.Email_Id = Email_Id;
@@ -567,20 +559,25 @@ const getAllUserRollData = asyncHandler(async (req, res) => {
     const allUserData = await User_Details.findAll({
         attributes: [
             'id',
-            'Rollno',
-            'candidateName',
-            'DNAME',
-            'DIST_NAME',
+            'User_Id',
+            'User_Name',
+            'D_Code',
             'Role',
             'Email_Id',
-            'DCODE',
-            'SUB_CEN',
+            'Mobile_Number',
             'User_Roll_Admin_0',
             'User_Roll_Admin_1',
             'User_Roll_Admin_2',
-            'User_Roll_Admin_3'
+            'User_Roll_Admin_3',
+            'User_Roll_Admin',
+            'User_Roll_Admin_4',
+            'User_Roll_Admin_5',
+            'User_Roll_Admin_6',
+            'User_Roll_Admin_7',
+            'User_Roll_Admin_8',
+            'User_Roll_Admin_9'
         ],
-        order: [['candidateName', 'ASC']]
+        order: [['User_Name', 'ASC']]
     });
 
     const NavbarDataDetails = await db.navbar_header.findAll({
@@ -596,11 +593,18 @@ const getAllUserRollData = asyncHandler(async (req, res) => {
         throw new AppError('No navbar data found', 404);
     }
 
+    // Fetch role master data
+    const roleMasters = await db.user_role_masters.findAll({
+        attributes: ['user_role_code', 'user_role'],
+        order: [['user_role_code', 'ASC']]
+    });
+
     res.status(200).json({
         status: 'success',
         data_header: MainHeaderData,
         data_complete: NavbarDataDetails,
-        UserDetails: allUserData
+        UserDetails: allUserData,
+        roleMasters: roleMasters
     });
 });
 
@@ -728,10 +732,17 @@ const getAllRollMasters = asyncHandler(async (req, res) => {
         order: [['Nav_Header_1', 'ASC'], ['Nav_Header_2', 'ASC']]
     });
 
+    // Fetch role master data
+    const userRoleMasters = await db.user_role_masters.findAll({
+        attributes: ['user_role_code', 'user_role'],
+        order: [['user_role_code', 'ASC']]
+    });
+
     res.status(200).json({
         status: 'success',
         rollMasters: rollMasters,
-        navbarHeaders: navbarHeaders
+        navbarHeaders: navbarHeaders,
+        userRoleMasters: userRoleMasters
     });
 });
 
@@ -970,7 +981,7 @@ const updateUserRollAdmin = asyncHandler(async (req, res) => {
         data: {
             id: user.id,
             Email_Id: user.Email_Id,
-            candidateName: user.candidateName,
+            User_Name: user.User_Name,
             [fieldName]: user[fieldName]
         }
     });
@@ -978,95 +989,87 @@ const updateUserRollAdmin = asyncHandler(async (req, res) => {
 
 const UpdaterollMaster = asyncHandler(async (req, res) => {
 
-const { ExaminerRoll } = req.body;
+    let { ExaminerRoll } = req.body;
 
-    
-    // Validate that ExaminerRoll is an array
-    if (!ExaminerRoll || !Array.isArray(ExaminerRoll)) {
-        throw new AppError('ExaminerRoll must be an array', 400);
+    // If ExaminerRoll is not provided or empty, fetch ALL users from database
+    if (!ExaminerRoll || !Array.isArray(ExaminerRoll) || ExaminerRoll.length === 0) {
+        console.log('🔄 Fetching all users from database...');
+        ExaminerRoll = await User_Details.findAll({
+            attributes: ['id', 'User_Name', 'Role'],
+            where: {
+                Role: { [Op.ne]: null } // Only users with a role assigned
+            },
+            order: [['id', 'ASC']]
+        });
+        console.log(`📊 Found ${ExaminerRoll.length} users to process`);
     }
-    
-    if (ExaminerRoll.length === 0) {
-        throw new AppError('ExaminerRoll cannot be empty', 400);
-    }
+
+    let updatedCount = 0;
+    let skippedCount = 0;
 
     for (const item of ExaminerRoll) {
         let RollData = item.Role ? item.Role.split(",") : [];
        
+        if (RollData.length === 0) {
+            skippedCount++;
+            continue;
+        }
         
         for (let i = 0; i < RollData.length; i++) {
             const roleId = RollData[i].trim();
-             let flnameRollMaster = "User_Roll_Admin_" + roleId;
+            let flnameRollMaster = "User_Roll_Admin_" + roleId;
             
             if (roleId === '') {
-                throw new AppError('Invalid role: empty values are not allowed', 400);
+                continue;
             }
             
             const rollName = parseInt(roleId);
             
+            // Query roll_masters table to get navbar assignments for this role
             const existingRollMaster = await db.roll_master.findOne({
                 where: {
                     rollName: rollName
                 }
             });
 
-            
             if (existingRollMaster) {
                 try {
-                    const existingArray = JSON.parse(existingRollMaster.rollDescrption || '[]');
-                   // const facultyArray = item.User_Roll_Admin ? item.User_Roll_Admin.split(",").map(item => item.trim()) : [];
-
-                    // Merge both arrays and create unique values
-                  //  const mergedArray = [...new Set([...existingArray, ...facultyArray])];
-                   const mergedArray = [...new Set([...existingArray])];
-
-                 
+                    // Parse the navbar IDs from roll_masters.rollDescrption (JSON array)
+                    const navbarArray = JSON.parse(existingRollMaster.rollDescrption || '[]');
                     
-                    // Update the roll master with merged unique values
-                    // existingRollMaster.rollDescrption = JSON.stringify(mergedArray);
-                    // existingRollMaster.rollStatus = 1;
-                    // await existingRollMaster.save();
-                    
-                    // Update the faculty User_Roll_Admin field
+                    // Ensure it's an array of unique values
+                    const mergedArray = [...new Set(navbarArray)];
+
+                    // Update the User_Details record with navbar assignments for this role
+                    // Store as comma-separated string to match existing format
                     const [updateCount] = await User_Details.update(
                         { [flnameRollMaster]: mergedArray.join(",") },
                         { where: { id: item.id } }
                     );
                     
                     if (updateCount === 0) {
-                        console.warn(`No faculty updated for id: ${item.id}, field: ${flnameRollMaster}`);
+                        console.warn(`⚠️ No user updated for id: ${item.id}, field: ${flnameRollMaster}`);
+                    } else {
+                        updatedCount++;
+                        console.log(`✅ Updated user id: ${item.id}, field: ${flnameRollMaster}, rollName: ${rollName}, navbars: ${mergedArray.join(",")}`);
                     }
 
-                        // return
-
                 } catch (error) {
-                    console.error('Error merging navbar headers:', error);
-                    throw new AppError('Error merging navbar headers: ' + error.message, 500);
+                    console.error('❌ Error updating user navbar assignments:', error);
+                    throw new AppError('Error updating user navbar assignments: ' + error.message, 500);
                 }
             } else {
-                // // Create new roll master if doesn't exist
-                // try {
-                //     const facultyArray = item.User_Roll_Admin ? item.User_Roll_Admin.split(",").map(item => item.trim()) : [];
-                //     const uniqueArray = [...new Set(facultyArray)];
-                    
-                //     await db.roll_master.create({
-                //         rollName: rollName,
-                //         rollDescrption: JSON.stringify(uniqueArray),
-                //         rollStatus: 1
-                //     });
-                    
-                //     console.log('Created new roll master for rollName:', rollName, 'with unique array:', uniqueArray);
-                // } catch (error) {
-                //     console.error('Error creating roll master:', error);
-                //     throw new AppError('Error creating roll master: ' + error.message, 500);
-                // }
+                console.warn(`⚠️ Role ${roleId} (rollName: ${rollName}) not found in roll_masters table`);
             }
         }
     }
 
     res.status(201).json({
         status: 'success',
-        message: 'Roll master processed successfully'
+        message: 'Roll master processed successfully',
+        updated: updatedCount,
+        skipped: skippedCount,
+        total: ExaminerRoll.length
     });
 });
 
@@ -1108,7 +1111,7 @@ const resetUserPassword = asyncHandler(async (req, res) => {
         const emailBody = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <h2 style="color: #2c3e50;">Password Reset Notification</h2>
-                <p>Hello <strong>${user.candidateName || 'User'}</strong>,</p>
+                <p>Hello <strong>${user.User_Name || 'User'}</strong>,</p>
                 <p>Your password has been reset by an administrator.</p>
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
                     <p style="margin: 5px 0;"><strong>Your temporary password is:</strong></p>
@@ -1145,7 +1148,7 @@ const resetUserPassword = asyncHandler(async (req, res) => {
         message: 'Password reset successfully. Email sent to user.',
         data: {
             userId: user.id,
-            candidateName: user.candidateName,
+            User_Name: user.User_Name,
             email: user.Email_Id,
             emailStatus: emailStatus,
         }

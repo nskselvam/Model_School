@@ -32,7 +32,14 @@ const Rollmaster = () => {
 
   const rollMasters = rollMasterData?.rollMasters || [];
   const navbarHeaders = rollMasterData?.navbarHeaders || [];
+  const userRoleMasters = rollMasterData?.userRoleMasters || [];
   const isLoading = isFetching || isCreating || isUpdating || isDeleting;
+
+  // Create role map from userRoleMasters for dynamic role name lookup
+  const roleMap = {};
+  userRoleMasters.forEach(role => {
+    roleMap[String(role.user_role_code)] = role.user_role;
+  });
 
   // Group navbar headers by Nav_Header_1
   // Get all Nav_Header_1 options (main headers with Nav_Header_2 === 0)
@@ -51,13 +58,7 @@ const Rollmaster = () => {
 
   // Get role name based on role ID
   const getRoleName = (rollId) => {
-    const roleMap = {
-      '0': 'State User',
-      '1': 'District User',
-      '2': 'Student User',
-      '3': 'Zone User'
-    };
-    return roleMap[String(rollId)] || 'Unknown Role';
+    return roleMap[String(rollId)] || `Unknown Role (${rollId})`;
   };
 
   // Get navbar header name for a given rollName
@@ -404,10 +405,11 @@ const Rollmaster = () => {
                     required
                   >
                     <option value="">Select Roll</option>
-                    <option value="0">0 - State User</option>
-                    <option value="1">1 - District User</option>
-                    <option value="2">2 - Student User</option>
-                    <option value="3">3 - Zone User</option>
+                    {userRoleMasters.map(role => (
+                      <option key={role.user_role_code} value={role.user_role_code}>
+                        {role.user_role_code} - {role.user_role}
+                      </option>
+                    ))}
                   </Form.Select>
                   <small className="text-muted">Select role from user types</small>
                 </Form.Group>

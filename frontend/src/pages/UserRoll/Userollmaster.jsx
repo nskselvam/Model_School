@@ -32,7 +32,7 @@ const Userollmaster = () => {
       if (navbarDataResponse.UserDetails) {
         const options = navbarDataResponse.UserDetails.map(user => ({
           value: user.id,
-          label: `${user.Email_Id} - ${user.candidateName}`,
+          label: `${user.Email_Id} - ${user.User_Name}`,
           faculty: user
         }));
         setFacultyOptions(options);
@@ -310,7 +310,7 @@ const Userollmaster = () => {
                             id={`faculty-${faculty.value}`}
                             label={
                               <div className="faculty-checkbox-label">
-                                <strong>{faculty.faculty.Email_Id}</strong> - {faculty.faculty.candidateName}
+                                <strong>{faculty.faculty.Email_Id}</strong> - {faculty.faculty.User_Name}
                                 <div className="faculty-details">
                                   <small className="text-muted">
                                     {faculty.faculty.Email_Id && <span><i className="bi bi-envelope me-1"></i>{faculty.faculty.Email_Id}</span>}

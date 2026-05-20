@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react'
 import { Container, Card, Button, Badge, Spinner, Form, Row, Col } from 'react-bootstrap'
 import DataTable from 'react-data-table-component/dist/index.es.js'
 import { useGetExaminerResetPasswordQuery , useResetExaminerPasswordMutation} from '../../redux-slice/examinerApiSlice'
-import masterData from '../../json/master.json'
 import { toast } from 'react-toastify'
 import { useSelector } from 'react-redux';
 const { VITE_Institution_No } = import.meta.env;
@@ -38,6 +37,13 @@ const ResetPassword = () => {
 
     const tableData = resetPasswordData?.data || [];
     const totalRows = resetPasswordData?.total || 0;
+    const roleMasters = resetPasswordData?.roleMasters || [];
+
+    // Create role map from roleMasters for dynamic role name lookup
+    const roleMap = {};
+    roleMasters.forEach(role => {
+        roleMap[String(role.user_role_code)] = role.user_role;
+    });
 
     const fetchUsers = () => refetch();
 
@@ -51,7 +57,7 @@ const ResetPassword = () => {
                 const emailStatus = response.data?.emailStatus || 'Unknown';
                 const statusEmoji = emailStatus === 'Sent' ? '✅' : '⚠️';
                 toast.success(
-                    `Password reset successful for ${row.candidateName}. ` +
+                    `Password reset successful for ${row.User_Name}. ` +
                     `${statusEmoji} Email Status: ${emailStatus}. ` +
                     `New password has been sent to ${response.data?.email || row.Email_Id}.`
                 );
@@ -88,13 +94,13 @@ const ResetPassword = () => {
         },
         {
             name: 'Roll Number',
-            selector: row => row.Rollno,
+            selector: row => row.User_Id,
             sortable: true,
             width: '150px'
         },
         {
             name: 'Candidate Name',
-            selector: row => row.candidateName,
+            selector: row => row.User_Name,
             sortable: true,
             width: '200px',
             wrap: true
@@ -117,6 +123,7 @@ const ResetPassword = () => {
                     <div className="d-flex flex-wrap gap-1 justify-content-center">
                         {roles.map((role, index) => {
                             const colors = getRoleBadgeColor(role);
+                            const roleName = roleMap[String(role)] || `Unknown (${role})`;
                             return (
                                 <Badge
                                     key={index}
@@ -124,10 +131,7 @@ const ResetPassword = () => {
                                     text={colors.text}
                                     style={{ fontSize: '11px', padding: '4px 8px' }}
                                 >
-                                    {
-                                    masterData.examinerRoles.find(r => String(r.id) === String(role))?.name
-                                  
-                                    }
+                                    {roleName}
                                 </Badge>
                             );
                         })}

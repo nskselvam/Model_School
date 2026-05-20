@@ -561,7 +561,7 @@ const fetch_Master_Data = asyncHandler(async (req, res) => {
 
   const facultyData = await db.User_Details.findAll({
     where: whereClause,
-    attributes: ['id', 'candidateName', 'Email_Id', 'Role', 'DCODE']
+    attributes: ['id', 'User_Name', 'Email_Id', 'Role', 'D_Code']
   });
 
   res.status(200).json({
@@ -613,7 +613,7 @@ const getUserAttendanceLogs = asyncHandler(async (req, res) => {
 
   const facultyDetails = await faculties.findAll({
     where: whereConditions,
-    attributes: ['Email_Id', 'candidateName'],
+    attributes: ['Email_Id', 'User_Name'],
     raw: true
   });
 
@@ -623,7 +623,7 @@ const getUserAttendanceLogs = asyncHandler(async (req, res) => {
     facultyDetails.forEach(faculty => {
       if (faculty && faculty.Email_Id) {
         const details = {
-          name: faculty.candidateName || 'N/A',
+          name: faculty.User_Name || 'N/A',
           email: faculty.Email_Id || 'N/A'
         };
         facultyMap[faculty.Email_Id] = details;

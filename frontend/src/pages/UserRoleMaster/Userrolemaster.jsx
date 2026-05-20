@@ -9,25 +9,6 @@ import { useGetAllUserDataQuery } from '../../redux-slice/adminOperationApiSlice
 
 const DataTable = DataTableBase.default || DataTableBase;
 
-// Role Master data for mapping role IDs to names
-const roleMaster = [
-  { id: "0", name: "State User" },
-  { id: "1", name: "District User" },
-  { id: "2", name: "Student User" },
-  { id: "3", name: "Zone User" },
-];
-
-// Helper function to convert role IDs to role names
-const getRoleNames = (roleIds) => {
-  if (!roleIds) return '-';
-  const ids = roleIds.split(',').map(id => id.trim());
-  const names = ids.map(id => {
-    const role = roleMaster.find(r => r.id === id);
-    return role ? role.name : id;
-  });
-  return names.join(', ');
-};
-
 const Userrolemaster = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,6 +30,20 @@ const Userrolemaster = () => {
     { refetchOnMountOrArgChange: true }
   );
 
+  const roleMasters = userDataFromApi?.roleMasters || [];
+
+  // Helper function to convert role IDs to role names
+  const getRoleNames = (roleIds) => {
+    if (!roleIds) return '-';
+    const roleMap = {};
+    roleMasters.forEach(role => {
+      roleMap[String(role.user_role_code)] = role.user_role;
+    });
+    const ids = roleIds.split(',').map(id => id.trim());
+    const names = ids.map(id => roleMap[id] || `Unknown (${id})`);
+    return names.join(', ');
+  };
+
   const tableData  = userDataFromApi?.data  || [];
   const totalRows  = userDataFromApi?.total || 0;
 
@@ -57,12 +52,12 @@ const Userrolemaster = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [modalMode, setModalMode] = useState('add'); // 'add' or 'edit'
-  const [currentRow, setCurrentRow] = useState({ id: '', candidateName: '', Email_Id: '', Mobile_Number: '', Role: '' });
+  const [currentRow, setCurrentRow] = useState({ id: '', User_Name: '', Email_Id: '', Mobile_Number: '', Role: '' });
   const [deleteRow, setDeleteRow] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const handleAdd = () => {
     setModalMode('add');
-    setCurrentRow({ id: '', candidateName: '', Email_Id: '', Mobile_Number: '', Role: '' });
+    setCurrentRow({ id: '', User_Name: '', Email_Id: '', Mobile_Number: '', Role: '' });
     setShowModal(true);
   };
 
@@ -117,7 +112,7 @@ const Userrolemaster = () => {
     },
     {
       name: 'Name',
-      selector: (row) => row.candidateName,
+      selector: (row) => row.User_Name,
       sortable: true,
       width: '220px',
       wrap: true
@@ -309,6 +304,7 @@ const Userrolemaster = () => {
         mode={modalMode}
         initialData={currentRow}
         onSave={handleSave}
+        roleMasters={roleMasters}
       />
 
       {/* Delete User/Role Modal */}
@@ -335,6 +331,7 @@ const Userrolemaster = () => {
         mode={modalMode}
         currentRow={currentRow}
         onSave={handleSave}
+        roleMasters={roleMasters}
       />
     </Container>
   );

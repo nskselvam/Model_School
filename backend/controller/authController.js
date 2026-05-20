@@ -17,10 +17,10 @@ const {
 } = require("../utils/formatDateTime");
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { candidateName, Email_Id, Role } = req.body;
-  if (!candidateName || !Email_Id || !Role) {
+  const { User_Name, Email_Id, Role } = req.body;
+  if (!User_Name || !Email_Id || !Role) {
     res.status(400);
-    throw new AppError("Please provide candidateName, Email_Id and Role", 400);
+    throw new AppError("Please provide User_Name, Email_Id and Role", 400);
   }
 
   const existingUser = await User_Details.findOne({
@@ -38,14 +38,12 @@ const registerUser = asyncHandler(async (req, res) => {
     .toUpperCase();
 
   await User_Details.create({
-    candidateName: candidateName.trim(),
+    User_Name: User_Name.trim(),
     Email_Id: Email_Id.trim(),
     Role: Role.toString(),
-    User_Pass: await bcrypt.hash(generatePasword, bcrypt.genSaltSync(10)),
+    Password: await bcrypt.hash(generatePasword, bcrypt.genSaltSync(10)),
     Temp_Password: generatePasword,
     ResetPass: 'N',
-    Login_Status: 'N',
-    Mailer: 'N',
     token_version: 0,
   });
 
@@ -309,7 +307,7 @@ const passsent_email = asyncHandler(async (req, res, next) => {
   const subject = "Password Reset";
   const emailBody = `
         <h1>Password Reset</h1>
-        <p>Dear ${result.candidateName},</p>
+        <p>Dear ${result.User_Name},</p>
         <p>Your temporary password is: <strong>${generatePasword}</strong></p>
         <p>Please log in and change your password immediately.</p>
   `;

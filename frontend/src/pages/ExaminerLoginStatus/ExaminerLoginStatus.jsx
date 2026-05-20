@@ -33,6 +33,13 @@ const ExaminerLoginStatus = () => {
 
   const loginStats = data?.data || {}
   const users = Array.isArray(loginStats) ? loginStats : (loginStats.users || [])
+  const roleMasters = data?.roleMasters || []
+
+  // Create role map from role masters
+  const roleMap = {}
+  roleMasters.forEach(role => {
+    roleMap[String(role.user_role_code)] = role.user_role
+  })
 
   // Calculate statistics from users data if not provided
   const calculateStats = () => {
@@ -53,9 +60,9 @@ const ExaminerLoginStatus = () => {
     }
 
     users.forEach(user => {
-      // By Department (using DNAME)
-      if (user.DNAME) {
-        const department = user.DNAME
+      // By Department (using D_Code)
+      if (user.D_Code) {
+        const department = user.D_Code
         stats.byDegree[department] = (stats.byDegree[department] || 0) + 1
       }
 
@@ -71,8 +78,8 @@ const ExaminerLoginStatus = () => {
       }
 
       // By Department and Role
-      if (user.Role && user.DNAME) {
-        const department = user.DNAME
+      if (user.Role && user.D_Code) {
+        const department = user.D_Code
         const roles = user.Role.split(',');
         roles.forEach(role => {
           const trimmedRole = role.trim();
@@ -97,13 +104,7 @@ const ExaminerLoginStatus = () => {
 
   // Helper function to get role name
   const getRoleName = (roleId) => {
-    const roleMap = {
-      '0': 'State User',
-      '1': 'District User',
-      '2': 'Student User',
-      '3': 'Zone User'
-    };
-    return roleMap[String(roleId)] || `Role ${roleId}`
+    return roleMap[String(roleId)] || `Unknown (${roleId})`
   }
 
   // Handle reset all login status
@@ -158,10 +159,10 @@ const ExaminerLoginStatus = () => {
         ['#', 'Roll Number', 'Name', 'Email', 'District', 'Roles'],
         ...users.map((user, index) => [
           index + 1,
-          user.Rollno || user.id || 'N/A',
-          user.candidateName || 'N/A',
+          user.User_Id || user.id || 'N/A',
+          user.User_Name || 'N/A',
           user.Email_Id || 'N/A',
-          user.DIST_NAME || user.DNAME || 'N/A',
+          user.D_Code || 'N/A',
           user.Role ? user.Role.split(',').map(r => getRoleName(r.trim())).join(', ') : 'N/A'
         ])
       ];
@@ -326,13 +327,13 @@ const ExaminerLoginStatus = () => {
               </thead>
               <tbody>
                 {users.map((user, index) => {
-                    let districtName = user.DIST_NAME || user.DNAME || 'N/A';
+                    let districtName = user.D_Code || 'N/A';
                     let userRoles = user.Role ? user.Role.split(',').map(r => getRoleName(r.trim())) : ['N/A'];
                     return (
-                      <tr key={user.Rollno || user.id || index}>
+                      <tr key={user.User_Id || user.id || index}>
                         <td>{index + 1}</td>
-                        <td><strong>{user.Rollno || user.id || 'N/A'}</strong></td>
-                        <td>{user.candidateName || 'N/A'}</td>
+                        <td><strong>{user.User_Id || user.id || 'N/A'}</strong></td>
+                        <td>{user.User_Name || 'N/A'}</td>
                         <td>{user.Email_Id || 'N/A'}</td>
                         <td>
                           <Badge bg="info">{districtName}</Badge>

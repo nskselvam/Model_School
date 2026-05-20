@@ -9,7 +9,15 @@ export const masterApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["MasterData"],
     }),
+    getDashboardStatistics: builder.query({
+      query: (districtCode) => ({
+        url: `/api/master/dashboard_statistics`,
+        method: "GET",
+        params: { districtCode },
+      }),
+      providesTags: ["DashboardStats"],
+    }),
   }),
 });
 
-export const { useGetMasterDataQuery } = masterApiSlice;
+export const { useGetMasterDataQuery, useGetDashboardStatisticsQuery } = masterApiSlice;

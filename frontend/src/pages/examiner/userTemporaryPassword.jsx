@@ -69,7 +69,7 @@ const UserTemporaryPassword = () => {
 
     const exportData = allData.map((row, index) => ({
       'S.No': index + 1,
-      'Candidate Name': row.candidateName,
+      'Candidate Name': row.User_Name,
       'Email ID': row.Email_Id,
       'Temporary Password': row.Temp_Password,
       'Password Status': 'Temporary (Not Reset)'
@@ -96,7 +96,7 @@ const UserTemporaryPassword = () => {
 
     const dataWithHeader = allData.map((row, index) => ({
       'S.No': index + 1,
-      'Candidate Name': row.candidateName,
+      'Candidate Name': row.User_Name,
       'Email ID': row.Email_Id,
       'Temporary Password': row.Temp_Password,
       'Password Status': 'Temporary (Not Reset)'
@@ -135,7 +135,7 @@ const UserTemporaryPassword = () => {
     },
     {
       name: 'Candidate Name',
-      selector: row => row.candidateName,
+      selector: row => row.User_Name,
       sortable: true,
       width: '250px',
       wrap: true

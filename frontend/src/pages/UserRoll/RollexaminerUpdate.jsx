@@ -14,20 +14,6 @@ import {
 
 const DataTable = DataTableBase.default || DataTableBase;
 
-// Helper function to convert role IDs to role names
-const getRoleNames = (roleIds) => {
-  if (!roleIds) return '-';
-  const roleMap = {
-    '0': 'State User',
-    '1': 'District User',
-    '2': 'Student User',
-    '3': 'Zone User'
-  };
-  const ids = roleIds.split(',').map(id => id.trim());
-  const names = ids.map(id => roleMap[id] || `Unknown (${id})`);
-  return names.join(', ');
-};
-
 const RollexaminerUpdate = () => {
   const [filterText, setFilterText]   = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,6 +42,20 @@ const RollexaminerUpdate = () => {
 
   const tableData = userDataFromApi?.data  || [];
   const totalRows = userDataFromApi?.total || 0;
+  const roleMasters = userDataFromApi?.roleMasters || navbarDataResponse?.roleMasters || [];
+
+  // Helper function to convert role IDs to role names
+  const getRoleNames = (roleIds) => {
+    if (!roleIds) return '-';
+    const roleMap = {};
+    roleMasters.forEach(role => {
+      roleMap[String(role.user_role_code)] = role.user_role;
+    });
+    const ids = roleIds.split(',').map(id => id.trim());
+    const names = ids.map(id => roleMap[id] || `Unknown (${id})`);
+    return names.join(', ');
+  };
+
   const [navbarOptions, setNavbarOptions] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedNavbarIds, setSelectedNavbarIds] = useState([]);
@@ -414,21 +414,22 @@ const RollexaminerUpdate = () => {
 
   // Handle Update Roll Master
   const handleUpdateRollMaster = async () => {
-    alert('This will update the roll_master table based on current user navbar assignments. Please confirm to proceed.');
+    const confirmed = window.confirm('This will update User_Roll_Admin fields for ALL users in the database based on their roles. Continue?');
+    if (!confirmed) return;
+    
     try {
       setIsUpdatingRollMaster(true);
 
-      
-      // Create roll master with all user data
+      // Send empty request - backend will fetch all users automatically
       const response = await updateRollMasterMapping({
-
-        ExaminerRoll: tableData
+        ExaminerRoll: []
       }).unwrap();
       
-      toast.success('Successfully updated roll master entries!');
+      toast.success(response.message || `Successfully updated ${response.updated} users!`);
+      refetch(); // Refresh current page data
     } catch (error) {
       console.error('Error updating roll master:', error);
-      toast.error('Failed to update roll master data');
+      toast.error(error?.data?.message || 'Failed to update roll master data');
     } finally {
       setIsUpdatingRollMaster(false);
     }
@@ -447,7 +448,7 @@ const RollexaminerUpdate = () => {
     },
     {
       name: 'Name',
-      selector: (row) => row.candidateName,
+      selector: (row) => row.User_Name,
       sortable: true,
       width: '200px',
       wrap: true
@@ -685,7 +686,7 @@ const RollexaminerUpdate = () => {
               <div className="modal-header bg-primary text-white">
                 <h5 className="modal-title">
                   <i className="bi bi-pencil-square me-2"></i>
-                  Edit Navbar Assignment for {selectedUser.candidateName}
+                  Edit Navbar Assignment for {selectedUser.User_Name}
                 </h5>
                 <button
                   type="button"
