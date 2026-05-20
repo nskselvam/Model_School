@@ -20,7 +20,7 @@ GET http://localhost:8000/api/updata_master_data/user-details-original
 
 
 ###
-GET http://localhost:8010/api/updata_master_data/user-details-insert
+GET http://localhost:8000/api/updata_master_data/user-details-insert
 
 
 ###
@@ -29,3 +29,10 @@ GET http://localhost:8000/api/master/get_district_master_data
 
 ###
 GET http://localhost:8000/api/master/get_district_selected_data
+
+###
+GET http://localhost:8000/api/updata_master_data/generateRank
+
+
+###
+GET http://localhost:8000/api/updata_master_data/vacancyAllot
