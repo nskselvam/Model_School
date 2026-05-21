@@ -32,7 +32,11 @@ const Student_processing_data_report = () => {
   };
 
   const getPreferenceName = (code) => {
-    const preferenceMap = { 0: 'Not Selected', 1: 'JEE', 2: 'NEET' };
+    const preferenceMap = {
+      0: 'Not Selected',
+      1: 'JEE',
+      2: 'NEET'
+    };
     return preferenceMap[code] || code;
   };
 

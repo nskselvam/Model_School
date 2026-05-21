@@ -592,12 +592,59 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
     }
 });
 
+const updateCertificateVerifiedStatus = asyncHandler(async (req, res) => {
+    const { Emis_No, udise_code } = req.body;
+
+    console.log("Updating certificate verification status for:", { Emis_No, udise_code });
+
+    // Validate required fields
+    if (!Emis_No || !udise_code) {
+        return res.status(400).json({
+            status: "fail",
+            message: "EMIS No and UDISE Code are required"
+        });
+    }
+
+    try {
+        // Update statFlg to 'Y' (certificate verified/printed)
+        const [updatedRows] = await db.Master_11.update(
+            { statFlg: 'Y' },
+            {
+                where: {
+                    Emis_No: Emis_No,
+                    udise_code: udise_code
+                }
+            }
+        );
+
+        if (updatedRows === 0) {
+            return res.status(404).json({
+                status: "fail",
+                message: "Record not found"
+            });
+        }
+
+        res.json({
+            status: "success",
+            message: "Certificate verification status updated successfully",
+            updatedRows
+        });
+    } catch (error) {
+        console.error("❌ Error updating certificate verification status:", error);
+        res.status(500).json({
+            status: "error",
+            message: error.message || "Failed to update certificate verification status"
+        });
+    }
+});
+
 module.exports = {
     getDistrictMasterData,
     districtSendData,
     getDistrictSelectedData,
     updateDistrictData,
     getDashboardStatistics,
-    getStudentProcessingReport
+    getStudentProcessingReport,
+    updateCertificateVerifiedStatus
 }
 

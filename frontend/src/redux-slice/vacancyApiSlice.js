@@ -43,6 +43,14 @@ export const vacancyApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["DistrictSelectedData"],
     }),
+    updateCertificateVerfiedStatus: builder.mutation({
+      query: (data) => ({
+        url: `/api/master/update_certificate_verified_status`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["DistrictSelectedData"],
+    }),
   }),
 });
 
@@ -52,5 +60,6 @@ export const {
   useGetDistrictMasterDataQuery,
   useDistrictSendDataMutation,
   useGetDistrictSelectedDataQuery,
-  useUpdateDistrictDataMutation 
+  useUpdateDistrictDataMutation,
+  useUpdateCertificateVerfiedStatusMutation
 } = vacancyApiSlice;

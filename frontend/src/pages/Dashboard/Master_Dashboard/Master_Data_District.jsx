@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { useSelector } from 'react-redux'
 import DataTable from 'react-data-table-component/dist/index.es.js'
-import { useGetDistrictSelectedDataQuery, useUpdateDistrictDataMutation } from '../../../redux-slice/vacancyApiSlice'
+import { useGetDistrictSelectedDataQuery, useUpdateDistrictDataMutation, useUpdateCertificateVerfiedStatusMutation } from '../../../redux-slice/vacancyApiSlice'
 import * as XLSX from 'xlsx'
 import { toast } from 'react-toastify'
 import { Modal, Button, Form } from 'react-bootstrap'
@@ -12,8 +12,7 @@ import 'jspdf-autotable'
 const candidateOptionMap = {
     0: 'Not Selected',
     1: 'JEE',
-    2: 'NEET',
-
+    2: 'NEET'
 };
 
 const Master_Data_District = () => {
@@ -28,6 +27,7 @@ const Master_Data_District = () => {
         { skip: !userDistrictCode }
     );
     const [updateDistrictData, { isLoading: isUpdating }] = useUpdateDistrictDataMutation();
+    const [updateCertificateVerifiedStatus] = useUpdateCertificateVerfiedStatusMutation();
 
     console.log('Fetched District Data:', data);
     
@@ -826,10 +826,9 @@ const Master_Data_District = () => {
         
         // Update statFlg to 'Y' after PDF generation
         try {
-            await updateDistrictData({
+            await updateCertificateVerifiedStatus({
                 Emis_No: row.Emis_No,
-                udise_code: row.udise_code,
-                statFlg: 'Y'
+                udise_code: row.udise_code
             }).unwrap();
             
             toast.success(`PDF generated for ${row.name}!`);
@@ -837,7 +836,7 @@ const Master_Data_District = () => {
             // Refetch data to update the table
             await refetch();
         } catch (error) {
-            console.error('Error updating statFlg:', error);
+            console.error('Error updating certificate verification status:', error);
             toast.warning(`PDF generated but failed to update status: ${error?.data?.message || 'Unknown error'}`);
         }
     };

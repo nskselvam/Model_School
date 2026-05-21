@@ -8,7 +8,8 @@ const {
   getDistrictSelectedData,
   updateDistrictData,
   getDashboardStatistics,
-  getStudentProcessingReport
+  getStudentProcessingReport,
+  updateCertificateVerifiedStatus
 } = require("../controller/masterOperatonController");
 const { modalprotect } = require("../middleware/authMiddleware");
 
@@ -77,6 +78,8 @@ router.put("/update_district_data", upload.fields([
   { name: 'aadharCard', maxCount: 1 },
   { name: 'otherCertificate', maxCount: 1 }
 ]), updateDistrictData);
+
+router.put("/update_certificate_verified_status", updateCertificateVerifiedStatus);
 
 
 module.exports = router;
