@@ -470,11 +470,121 @@ const getDashboardStatistics = asyncHandler(async (req, res) => {
     }
 });
 
+const getStudentProcessingReport = asyncHandler(async (req, res) => {
+    const { districtCode, candidateStatus, schoolType } = req.query;
+
+    // Build where condition - filter by selFlg = 'Y' (eligible candidates)
+    const whereCondition = { selFlg: 'Y' };
+
+    // Add district filter if provided and not '00' or 'all'
+    if (districtCode && districtCode !== '00' && districtCode !== 'all') {
+        whereCondition.Cen_Code = districtCode;
+    }
+
+    // Add candidate status filter if provided
+    if (candidateStatus !== undefined && candidateStatus !== 'all') {
+        whereCondition.candidate_status = parseInt(candidateStatus);
+    }
+
+    // Add school type filter if provided
+    if (schoolType && schoolType !== 'all') {
+        whereCondition.Student_Status = parseInt(schoolType);
+    }
+
+    try {
+        // Get individual student records
+        const studentRecords = await db.Master_11.findAll({
+            attributes: [
+                'Emis_No',
+                'udise_code',
+                'school_name',
+                'district_name',
+                'Cen_Code',
+                'name',
+                'father_name',
+                'Student_Status',
+                'candidate_status',
+                'com',
+                'sex',
+                'pstm',
+                'dob',
+                'ph',
+                'Disability_Name',
+                'Zone_Name_Jee',
+                'Zone_Name_Neet',
+                'candidate_preferences'
+            ],
+            where: whereCondition,
+            order: [
+                ['Cen_Code', 'ASC'],
+                ['Emis_No', 'ASC']
+            ]
+        });
+
+        // Format dates in the response
+        const formattedRecords = studentRecords.map(record => {
+            const data = record.toJSON();
+            if (data.dob) {
+                data.dob = formatDateOnly(data.dob);
+            }
+            return data;
+        });
+
+        // Get summary statistics
+        const totalRecords = formattedRecords.length;
+        const presentCount = formattedRecords.filter(r => r.candidate_status === 1).length;
+        const absentCount = formattedRecords.filter(r => r.candidate_status === 4).length;
+        const notProcessedCount = formattedRecords.filter(r => r.candidate_status === 0).length;
+        const status2Count = formattedRecords.filter(r => r.candidate_status === 2).length;
+        const status3Count = formattedRecords.filter(r => r.candidate_status === 3).length;
+
+        // Get unique districts for dropdown
+        const uniqueDistricts = await db.Master_11.findAll({
+            attributes: [
+                [db.Sequelize.fn('DISTINCT', db.Sequelize.col('Cen_Code')), 'Cen_Code'],
+                'district_name'
+            ],
+            where: { selFlg: 'Y' },
+            order: [['Cen_Code', 'ASC']],
+            raw: true
+        });
+
+        res.json({
+            status: 'success',
+            data: formattedRecords,
+            summary: {
+                totalRecords,
+                presentCount,
+                absentCount,
+                notProcessedCount,
+                status2Count,
+                status3Count
+            },
+            districts: uniqueDistricts.map(d => ({
+                code: d.Cen_Code,
+                name: d.district_name || `District ${d.Cen_Code}`
+            })),
+            filters: {
+                districtCode: districtCode || 'all',
+                candidateStatus: candidateStatus || 'all',
+                schoolType: schoolType || 'all'
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching student processing report:", error);
+        res.status(500).json({
+            status: "error",
+            message: error.message || "Failed to fetch student processing report"
+        });
+    }
+});
+
 module.exports = {
     getDistrictMasterData,
     districtSendData,
     getDistrictSelectedData,
     updateDistrictData,
-    getDashboardStatistics
+    getDashboardStatistics,
+    getStudentProcessingReport
 }
 

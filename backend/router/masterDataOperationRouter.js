@@ -7,7 +7,8 @@ const {
   districtSendData,
   getDistrictSelectedData,
   updateDistrictData,
-  getDashboardStatistics
+  getDashboardStatistics,
+  getStudentProcessingReport
 } = require("../controller/masterOperatonController");
 const { modalprotect } = require("../middleware/authMiddleware");
 
@@ -69,6 +70,7 @@ router.get("/get_district_master_data", getDistrictMasterData);
 router.post("/district_send_data", districtSendData);
 router.get("/get_district_selected_data", getDistrictSelectedData);
 router.get("/dashboard_statistics", getDashboardStatistics);
+router.get("/student_processing_report", getStudentProcessingReport);
 router.put("/update_district_data", upload.fields([
   { name: 'birthCertificate', maxCount: 1 },
   { name: 'communityCertificate', maxCount: 1 },
