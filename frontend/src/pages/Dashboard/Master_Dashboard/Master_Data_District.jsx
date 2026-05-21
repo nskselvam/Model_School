@@ -286,9 +286,7 @@ const Master_Data_District = () => {
         if (!uploadedFiles.communityCertificate && !formData.community_certificate_path) {
             errors.communityCertificate = 'Community certificate is required';
         }
-        if (!uploadedFiles.aadharCard && !formData.aadhar_card_path) {
-            errors.aadharCard = 'Aadhar card is required';
-        }
+        // Aadhar card is optional - no validation required
         
         return errors;
     };
@@ -1901,7 +1899,7 @@ const Master_Data_District = () => {
                                     <Form.Group>
                                         <Form.Label style={{ fontWeight: '600', color: '#4a5568', fontSize: '0.9rem', marginBottom: '8px' }}>
                                             <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                            Birth Certificate <span className="text-danger">*</span>
+                                            Photo Id Card / Aadhar Card<span className="text-danger">*</span>
                                         </Form.Label>
                                         <Form.Control
                                             type="file"
@@ -2007,21 +2005,20 @@ const Master_Data_District = () => {
                                     <Form.Group>
                                         <Form.Label style={{ fontWeight: '600', color: '#4a5568', fontSize: '0.9rem', marginBottom: '8px' }}>
                                             <i className="bi bi-credit-card-2-front me-2 text-info"></i>
-                                            Aadhar Card <span className="text-danger">*</span>
+                                           Birth Certificate / Other Certificate <span className="text-danger">*</span>
                                         </Form.Label>
                                         <Form.Control
                                             type="file"
                                             name="aadharCard"
                                             onChange={handleFileChange}
                                             accept=".pdf,.jpg,.jpeg,.png"
-                                            isInvalid={!!validationErrors.aadharCard}
                                             style={{
                                                 borderRadius: '10px',
-                                                border: validationErrors.aadharCard ? '2px solid #ef4444' : '2px solid #e2e8f0',
+                                                border: '2px solid #e2e8f0',
                                                 padding: '12px 16px',
                                                 fontSize: '0.95rem',
                                                 transition: 'all 0.3s ease',
-                                                boxShadow: validationErrors.aadharCard ? '0 0 0 3px rgba(239, 68, 68, 0.1)' : 'inset 0 1px 2px rgba(0,0,0,0.05)',
+                                                boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.05)',
                                                 cursor: 'pointer'
                                             }}
                                             onFocus={(e) => {
@@ -2046,12 +2043,6 @@ const Master_Data_District = () => {
                                                 <i className="bi bi-check-circle-fill me-2"></i>
                                                 {uploadedFiles.aadharCard.name}
                                             </small>
-                                        )}
-                                        {validationErrors.aadharCard && (
-                                            <Form.Control.Feedback type="invalid" style={{ display: 'block', fontSize: '0.85rem', marginTop: '6px', color: '#ef4444' }}>
-                                                <i className="bi bi-exclamation-circle me-1"></i>
-                                                {validationErrors.aadharCard}
-                                            </Form.Control.Feedback>
                                         )}
                                     </Form.Group>
                                 </div>
