@@ -337,9 +337,9 @@ const Master_Data_District = () => {
             if (uploadedFiles.communityCertificate) {
                 formDataToSend.append('communityCertificate', uploadedFiles.communityCertificate);
             }
-            if (uploadedFiles.aadharCard) {
-                formDataToSend.append('aadharCard', uploadedFiles.aadharCard);
-            }
+            // if (uploadedFiles.aadharCard) {
+            //     formDataToSend.append('aadharCard', uploadedFiles.aadharCard);
+            // }
             if (uploadedFiles.otherCertificate) {
                 formDataToSend.append('otherCertificate', uploadedFiles.otherCertificate);
             }
@@ -1901,7 +1901,7 @@ const Master_Data_District = () => {
                                     <Form.Group>
                                         <Form.Label style={{ fontWeight: '600', color: '#4a5568', fontSize: '0.9rem', marginBottom: '8px' }}>
                                             <i className="bi bi-file-earmark-text me-2 text-primary"></i>
-                                            Birth Certificate <span className="text-danger">*</span>
+                                            Photo id card / Adhar card<span className="text-danger">*</span>
                                         </Form.Label>
                                         <Form.Control
                                             type="file"
@@ -2007,7 +2007,7 @@ const Master_Data_District = () => {
                                     <Form.Group>
                                         <Form.Label style={{ fontWeight: '600', color: '#4a5568', fontSize: '0.9rem', marginBottom: '8px' }}>
                                             <i className="bi bi-credit-card-2-front me-2 text-info"></i>
-                                            Aadhar Card <span className="text-danger">*</span>
+                                            Birth Certificate / Other Document
                                         </Form.Label>
                                         <Form.Control
                                             type="file"

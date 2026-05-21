@@ -149,15 +149,20 @@ const generateRank = asyncHandler(async (req, res) => {
 
 const vacancyAllot = asyncHandler(async (req, res) => {
 
+  let SchoolStatus= [
+    { code: 1, label: 'M' },
+    { code: 2, label: 'G' },
+  ]
+
 
   const vacancyData = await db.Vacancy_Master.findAll({
     where: {
       [Op.and]: [
         Sequelize.literal('"vac" > "filledVacancy"')
       ],
-      Student_Status: 1,
-      Vacancy_Type: 1,
-      Zone_Code: 1
+      // Student_Status: 1,
+      // Vacancy_Type: 1,
+      // Zone_Code: 1
     },
     order: [['Student_Status', 'ASC'],
     ['Vacancy_Type', 'ASC'],
@@ -173,10 +178,11 @@ const vacancyAllot = asyncHandler(async (req, res) => {
     const zoneCode = record.Zone_Code;
     const studentStatus = record.Student_Status;
     const communtiy = record.Com;
-    const vacanyCnt = record.vac ;
+    const vacanyCnt = record.vac;
+    const CenterType = record.Center_Type;
     const phstatus = record.ph;
     let selcat = `${record.REM}-${record.REM1}-${record.REM2}`;
-    if (record.REM3 !=null) {
+    if (record.REM3 != null) {
       selcat += `-${record.REM3}`;
     }
 
@@ -191,13 +197,14 @@ const vacancyAllot = asyncHandler(async (req, res) => {
     } else if (vacancyType == 2) {
       whereConditon.Zone_Neet = zoneCode;
     }
-    console.log(whereConditon,communtiy, phstatus);
+    console.log(whereConditon, communtiy, phstatus);
 
     if (communtiy == 5 && phstatus == 1) {
       MasterData = await db.Master_11.findAll({
         where: {
           ...whereConditon,
           sex: record.sex,
+          pstm: record.pstm,
           ph: phstatus,
           selcat: null
         },
@@ -208,18 +215,20 @@ const vacancyAllot = asyncHandler(async (req, res) => {
         where: {
           ...whereConditon,
           sex: record.sex,
+          pstm: record.pstm,
           selcat: null
         },
         order: [['ORANK', 'ASC']]
       });
     } else if (communtiy != 5) {
-      if (communtiy== 1 && phstatus == 1) {
+      if (communtiy == 1 && phstatus == 1) {
         MasterData = await db.Master_11.findAll({
           where: {
             ...whereConditon,
-             sex: record.sex,
+            sex: record.sex,
+            pstm: record.pstm,
             [Op.or]: [
-              { com: communtiy},
+              { com: communtiy },
 
               { com: 6 }
             ],
@@ -228,13 +237,14 @@ const vacancyAllot = asyncHandler(async (req, res) => {
           },
           order: [['ORANK', 'ASC']]
         });
-      } else if (communtiy== 1 && phstatus == 0) {
+      } else if (communtiy == 1 && phstatus == 0) {
         MasterData = await db.Master_11.findAll({
           where: {
             ...whereConditon,
-             sex: record.sex,
+            sex: record.sex,
+            pstm: record.pstm,
             [Op.or]: [
-              { com: communtiy},
+              { com: communtiy },
               { com: 6 }
             ],
             selcat: null
@@ -245,7 +255,8 @@ const vacancyAllot = asyncHandler(async (req, res) => {
         MasterData = await db.Master_11.findAll({
           where: {
             ...whereConditon,
-             sex: record.sex,
+            sex: record.sex,
+            pstm: record.pstm,
             com: communtiy,
             ph: phstatus,
             selcat: null
@@ -256,7 +267,8 @@ const vacancyAllot = asyncHandler(async (req, res) => {
         MasterData = await db.Master_11.findAll({
           where: {
             ...whereConditon,
-             sex: record.sex,
+            sex: record.sex,
+            pstm: record.pstm,
             com: communtiy,
             selcat: null
           },
@@ -266,14 +278,16 @@ const vacancyAllot = asyncHandler(async (req, res) => {
     }
     console.log(MasterData.length, vacanyCnt);
 
-    
+
     for (let i = 0; i < MasterData.length && i < vacanyCnt; i++) {
       const studentRecord = MasterData[i];
-   
+
       await db.Master_11.update(
-        { selcat: vacancyType, selcom: communtiy, selpstm: record.pstm, selsex: record.sex,
-          selcat: selcat+(`-${i+1}/${vacanyCnt}`),  selFlg: 'Y'
-         },
+        {
+          selcom: communtiy, selpstm: record.pstm, selsex: record.sex,
+          selPost: vacancyType,
+          selcat: SchoolStatus.find(status => status.code === record.Student_Status).label + '-' + CenterType + '-' + selcat + (`(${i + 1}/${vacanyCnt})`), selFlg: 'Y'
+        },
         {
           where: {
             id: studentRecord.id
