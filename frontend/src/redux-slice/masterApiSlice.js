@@ -17,7 +17,19 @@ export const masterApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["DashboardStats"],
     }),
+    getStudentProcessingReport: builder.query({
+      query: ({ districtCode, candidateStatus, schoolType }) => ({
+        url: `/api/master/student_processing_report`,
+        method: "GET",
+        params: { districtCode, candidateStatus, schoolType },
+      }),
+      providesTags: ["StudentReport"],
+    }),
   }),
 });
 
-export const { useGetMasterDataQuery, useGetDashboardStatisticsQuery } = masterApiSlice;
+export const { 
+  useGetMasterDataQuery, 
+  useGetDashboardStatisticsQuery,
+  useGetStudentProcessingReportQuery 
+} = masterApiSlice;

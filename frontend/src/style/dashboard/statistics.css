@@ -496,3 +496,35 @@
   color: #718096;
   margin-top: 4px;
 }
+
+/* Summary Cards for Reports */
+.summary-card {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border: none;
+  height: 100%;
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.summary-card .card-body {
+  padding: 20px;
+}
+
+.summary-card h6 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.summary-card h3 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}

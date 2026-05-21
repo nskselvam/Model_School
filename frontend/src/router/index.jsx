@@ -29,6 +29,10 @@ const Candidate_Dashboard = lazy(() =>
   import("../pages/Dashboard/Candidate_Dashboard/Candidate_Dashboard.jsx")
 );
 
+const Student_processing_data_report = lazy(() =>
+  import("../pages/Dashboard/StudentReport/Student_processing_data_report.jsx")
+);
+
 const District_Common_Dashboard = lazy(() => 
   import("../pages/Dashboard/Common/District_Common_Dashboard.jsx")
 );
@@ -117,7 +121,7 @@ const Master_Data_Dashboard = lazy(() =>
 const Student_master_Dashboard = lazy(() => 
   import("../pages/masterData/MasterData.jsx")
 );
-
+  
 const PagenotFound = lazy(() => 
   import("../pages/Dashboard/Pagenotfound/PagenotFound.jsx")
 );
@@ -270,6 +274,11 @@ const router = createBrowserRouter(
         <Route
           path="/master_data/district_data"
           element={<LazyRoute component={Master_Data_District} />}
+        />
+
+        <Route
+          path="/student_processing_report"
+          element={<LazyRoute component={Student_processing_data_report} />}
         />
 
         {/* <Route
