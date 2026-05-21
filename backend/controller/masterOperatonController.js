@@ -474,15 +474,14 @@ const getDashboardStatistics = asyncHandler(async (req, res) => {
 const getStudentProcessingReport = asyncHandler(async (req, res) => {
     const { districtCode, candidateStatus, schoolType } = req.query;
 
-    // Build where condition - filter by selFlg = 'Y' (eligible candidates)
-    const whereCondition = { selFlg: 'Y' };
+    // Build where condition - filter by selFlg = 'Y' (eligible candidates) AND distFlg = 'Y' (sent to district)
+    const whereCondition = { selFlg: 'Y', distFlg: 'Y' };
 
     console.log("Received filters - District Code:", districtCode, "Candidate Status:", candidateStatus, "School Type:", schoolType);
     
     // Special handling for candidateStatus = 5 (Pending/Not Processed)
     if(candidateStatus == '5') {
         whereCondition.candidate_status = 0; // Candidates not yet processed
-        whereCondition.distFlg = 'Y'; // Already sent to district
     }
 
     console.log("Constructed where condition:", whereCondition);
