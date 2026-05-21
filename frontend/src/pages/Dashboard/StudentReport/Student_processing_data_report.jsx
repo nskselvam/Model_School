@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Container, Row, Col, Card, Spinner, Form, Button, ButtonGroup } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import DataTableBase from 'react-data-table-component';
@@ -48,25 +48,38 @@ const Student_processing_data_report = () => {
 
   // Get user info from Redux state
   const { userInfo } = useSelector((state) => state.auth);
-  const userDistrictCode = userInfo?.district || '01';
+  const userDistrictCode = userInfo?.district || '00';
   const userRole = String(userInfo?.Role || '1'); // Convert to string for comparison
-  const isStateUser = userRole === '0' || userRole === '2' || userRole === '5'; // State-level users
-console.log('User Role:', userRole, 'Is State User:', isStateUser);
-  // Debug logging
-  console.log('User Role:', userRole, 'Is State User:', isStateUser);
-
-  // Filter states
-  const [selectedDistrict, setSelectedDistrict] = useState(isStateUser ? 'all' : userDistrictCode);
-  const [candidateStatus, setCandidateStatus] = useState('all'); // all, 1=present, 4=absent, 2=not willing, 3=not eligible
-  const [schoolType, setSchoolType] = useState('all'); // all, 1=Model School, 2=Government School
+  // State-level users can be determined by role OR district code "00"
+  const isStateUser = userDistrictCode === '00' || userRole === '0' || userRole === '2' || userRole === '5';
+  
+  console.log('User District:', userDistrictCode, 'User Role:', userRole, 'Is State User:', isStateUser);
 
   // Fetch district data for dropdown (state users only)
   const { data: districtData } = useGetDistrictDataQuery();
   const allDistricts = districtData?.data || [];
   
-  // Debug logging
-  console.log('District Data:', districtData);
-  console.log('All Districts Count:', allDistricts.length);
+  // Get initial district value
+  const initialDistrict = useMemo(() => {
+    if (isStateUser) return 'all';
+    return userDistrictCode;
+  }, [isStateUser, userDistrictCode]);
+
+  // Filter states
+  const [selectedDistrict, setSelectedDistrict] = useState('all');
+  const districtInitialized = useRef(false);
+  
+  // Initialize district for non-state users
+  useEffect(() => {
+    if (!districtInitialized.current && !isStateUser && initialDistrict !== 'all') {
+      setSelectedDistrict(initialDistrict);
+      districtInitialized.current = true;
+    }
+  }, [isStateUser, initialDistrict]);
+
+  const [candidateStatus, setCandidateStatus] = useState('all'); // all, 1=present, 4=absent, 2=not willing, 3=not eligible
+
+  const [schoolType, setSchoolType] = useState('all'); // all, 1=Model School, 2=Government School
 
   // Determine which district to query
   const queryDistrictCode = isStateUser ? selectedDistrict : userDistrictCode;

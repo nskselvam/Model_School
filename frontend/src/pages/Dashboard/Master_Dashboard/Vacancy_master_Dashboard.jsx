@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import DataTable from 'react-data-table-component/dist/index.es.js'
 import { useGetDistrictMasterDataQuery, useGetVacancyDataQuery } from '../../../redux-slice/vacancyApiSlice'
@@ -11,6 +11,7 @@ const Vacancy_master_Dashboard = () => {
     
     // State for district filter
     const [selectedDistrict, setSelectedDistrict] = useState("ALL");
+    const districtInitialized = useRef(false);
     
     // Determine which district to fetch data for
     // If user is admin (00), use selectedDistrict; otherwise use their district code
@@ -18,6 +19,37 @@ const Vacancy_master_Dashboard = () => {
  
     const { data: districtMasterData, isLoading: isDistrictMasterDataLoading, error: districtMasterDataError } = useGetDistrictMasterDataQuery();
     const { data: vacancyData, isLoading: isVacancyDataLoading, error: vacancyDataError } = useGetVacancyDataQuery(districtParam);
+    
+    // Get unique district options
+    const districtOptions = useMemo(() => {
+        if (!districtMasterData) return [];
+        
+        // If user has access to all districts
+        if (userDistrictCode === "00") {
+            return districtMasterData;
+        }
+        
+        // If user has specific district access
+        return districtMasterData.filter(district => district.DCODE === userDistrictCode);
+    }, [districtMasterData, userDistrictCode]);
+
+    // Get initial district value based on user role
+    const initialDistrict = useMemo(() => {
+        if (userDistrictCode === "00") return "ALL";
+        if (districtMasterData) {
+            const userDistrict = districtMasterData.find(d => d.DCODE === userDistrictCode);
+            return userDistrict?.DCODE || "ALL";
+        }
+        return "ALL";
+    }, [districtMasterData, userDistrictCode]);
+
+    // Update selected district when initial district changes
+    useEffect(() => {
+        if (!districtInitialized.current && initialDistrict !== "ALL") {
+            setSelectedDistrict(initialDistrict);
+            districtInitialized.current = true;
+        }
+    }, [initialDistrict]);
 
     // Define columns for DataTable
     const columns = [
@@ -87,19 +119,6 @@ const Vacancy_master_Dashboard = () => {
     const filteredData = useMemo(() => {
         return vacancyData || [];
     }, [vacancyData]);
-
-    // Get unique district options
-    const districtOptions = useMemo(() => {
-        if (!districtMasterData) return [];
-        
-        // If user has access to all districts
-        if (userDistrictCode === "00") {
-            return districtMasterData;
-        }
-        
-        // If user has specific district access
-        return districtMasterData.filter(district => district.DCODE === userDistrictCode);
-    }, [districtMasterData, userDistrictCode]);
 
     // Function to export data to Excel
     const exportToExcel = () => {
@@ -179,7 +198,7 @@ const Vacancy_master_Dashboard = () => {
                                 onChange={(e) => setSelectedDistrict(e.target.value)}
                                 disabled={userDistrictCode !== "00"}
                             >
-                                <option value="ALL">All Districts</option>
+                                {userDistrictCode === "00" && <option value="ALL">All Districts</option>}
                                 {districtOptions.map((district) => (
                                     <option key={district.DCODE} value={district.DCODE}>
                                         {district.DNAME} ({district.DCODE})

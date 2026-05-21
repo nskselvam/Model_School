@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
 import DataTable from 'react-data-table-component/dist/index.es.js'
 import { useGetMasterDataQuery } from '../../../redux-slice/masterApiSlice'
 import { useGetDistrictMasterDataQuery ,useDistrictSendDataMutation} from '../../../redux-slice/vacancyApiSlice'
 import * as XLSX from 'xlsx'
-import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const Master_Data_Dashboard = () => {
@@ -12,10 +11,33 @@ const Master_Data_Dashboard = () => {
     const { regulationInfo } = useSelector((state) => state.auth);
     const userDistrictCode = regulationInfo?.district || "00";
     
-    const { data, isLoading, error } = useGetMasterDataQuery();
+    const { data, isLoading, error, refetch } = useGetMasterDataQuery();
     const { data: districtMasterData, isLoading: isDistrictMasterDataLoading } = useGetDistrictMasterDataQuery();
 
     const [districtSendData] = useDistrictSendDataMutation();
+    
+    // Get unique district options
+    const districtOptions = useMemo(() => {
+        if (!districtMasterData) return [];
+        
+        // If user has access to all districts
+        if (userDistrictCode === "00") {
+            return districtMasterData;
+        }
+        
+        // If user has specific district access
+        return districtMasterData.filter(district => district.DCODE === userDistrictCode);
+    }, [districtMasterData, userDistrictCode]);
+
+    // Get initial district value based on user role
+    const initialDistrict = useMemo(() => {
+        if (userDistrictCode === "00") return "ALL";
+        if (districtMasterData) {
+            const userDistrict = districtMasterData.find(d => d.DCODE === userDistrictCode);
+            return userDistrict?.DNAME || "ALL";
+        }
+        return "ALL";
+    }, [districtMasterData, userDistrictCode]);
     
     const [searchText, setSearchText] = useState("");
     const [selectedDistrict, setSelectedDistrict] = useState("ALL");
@@ -23,6 +45,7 @@ const Master_Data_Dashboard = () => {
     const [selectedRows, setSelectedRows] = useState([]);
     const [selectAll, setSelectAll] = useState(false);
     const [sendingData, setSendingData] = useState(false);
+    const districtInitialized = useRef(false);
 
     // Community mapping
     const communityMap = {
@@ -101,48 +124,31 @@ const Master_Data_Dashboard = () => {
 
         try {
             const response = await districtSendData(selectedRows).unwrap();
-            toast.success(response?.message || 'Data sent successfully');
+            toast.success(response?.message || 'Data sent successfully');   
+            // Clear selections
             setSelectedRows([]);
             setSelectAll(false);
+            // Refetch data to update the display immediately
+            await refetch();
         } catch (error) {
             toast.error(error?.data?.message || 'Failed to send data');
         } finally {
             setSendingData(false);
         }
-        // try {
-        //     const response = await axios.post('/api/master/send_selected_data', {
-        //         selectedData: selectedRows
-        //     }, {
-        //         withCredentials: true
-        //     });
-            
-        //     toast.success(response.data?.message || 'Data sent successfully');
-        //     setSelectedRows([]);
-        //     setSelectAll(false);
-        // } catch (error) {
-        //     toast.error(error.response?.data?.message || 'Failed to send data');
-        // } finally {
-        //     setSendingData(false);
-        // }
     };
 
-    // Get unique district options
-    const districtOptions = useMemo(() => {
-        if (!districtMasterData) return [];
-        
-        // If user has access to all districts
-        if (userDistrictCode === "00") {
-            return districtMasterData;
+    // Update selected district when initial district changes
+    useEffect(() => {
+        if (!districtInitialized.current && initialDistrict !== "ALL") {
+            setSelectedDistrict(initialDistrict);
+            districtInitialized.current = true;
         }
-        
-        // If user has specific district access
-        return districtMasterData.filter(district => district.DCODE === userDistrictCode);
-    }, [districtMasterData, userDistrictCode]);
+    }, [initialDistrict]);
 
     // Filter data based on student status, district and search
-    const filteredData = useMemo(() => {
-        if (!data?.data) return [];
-        
+    // React Compiler will automatically memoize this
+    let filteredData = [];
+    if (data?.data) {
         let filtered = data.data;
         
         // Filter by Student Status
@@ -176,12 +182,8 @@ const Master_Data_Dashboard = () => {
             });
         }
         
-        // Reset selections when filter changes
-        setSelectedRows([]);
-        setSelectAll(false);
-        
-        return filtered;
-    }, [data, selectedStudentStatus, selectedDistrict, searchText]);
+        filteredData = filtered;
+    }
 
     // Define columns for DataTable
     const columns = [
@@ -376,7 +378,11 @@ const Master_Data_Dashboard = () => {
                                 <button
                                     type="button"
                                     className={`btn ${selectedStudentStatus === 1 ? 'btn-primary' : 'btn-outline-primary'}`}
-                                    onClick={() => setSelectedStudentStatus(1)}
+                                    onClick={() => {
+                                        setSelectedStudentStatus(1);
+                                        setSelectedRows([]);
+                                        setSelectAll(false);
+                                    }}
                                     style={{
                                         fontWeight: selectedStudentStatus === 1 ? '600' : '500',
                                         transition: 'all 0.3s ease'
@@ -388,7 +394,11 @@ const Master_Data_Dashboard = () => {
                                 <button
                                     type="button"
                                     className={`btn ${selectedStudentStatus === 2 ? 'btn-primary' : 'btn-outline-primary'}`}
-                                    onClick={() => setSelectedStudentStatus(2)}
+                                    onClick={() => {
+                                        setSelectedStudentStatus(2);
+                                        setSelectedRows([]);
+                                        setSelectAll(false);
+                                    }}
                                     style={{
                                         fontWeight: selectedStudentStatus === 2 ? '600' : '500',
                                         transition: 'all 0.3s ease'
@@ -473,10 +483,14 @@ const Master_Data_Dashboard = () => {
                                 className="form-select"
                                 style={{ minWidth: '200px' }}
                                 value={selectedDistrict}
-                                onChange={(e) => setSelectedDistrict(e.target.value)}
+                                onChange={(e) => {
+                                    setSelectedDistrict(e.target.value);
+                                    setSelectedRows([]);
+                                    setSelectAll(false);
+                                }}
                                 disabled={userDistrictCode !== "00"}
                             >
-                                <option value="ALL">All Districts</option>
+                                {userDistrictCode === "00" && <option value="ALL">All Districts</option>}
                                 {districtOptions.map((district) => (
                                     <option key={district.DCODE} value={district.DNAME}>
                                         {district.DNAME} ({district.DCODE})
@@ -490,7 +504,11 @@ const Master_Data_Dashboard = () => {
                                 className="form-control"
                                 placeholder="Search by EMIS, UDISE, School, Student Name..."
                                 value={searchText}
-                                onChange={(e) => setSearchText(e.target.value)}
+                                onChange={(e) => {
+                                    setSearchText(e.target.value);
+                                    setSelectedRows([]);
+                                    setSelectAll(false);
+                                }}
                             />
                         </div>
                     </div>
