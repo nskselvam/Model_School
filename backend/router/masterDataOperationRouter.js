@@ -67,19 +67,19 @@ const upload = multer({
 
 console.log(`📁 Certificate upload storage: ${USE_S3 ? 'AWS S3' : 'Local Disk'}`);
 
-router.get("/get_district_master_data", getDistrictMasterData);
-router.post("/district_send_data", districtSendData);
-router.get("/get_district_selected_data", getDistrictSelectedData);
-router.get("/dashboard_statistics", getDashboardStatistics);
-router.get("/student_processing_report", getStudentProcessingReport);
-router.put("/update_district_data", upload.fields([
+router.get("/get_district_master_data", modalprotect,getDistrictMasterData);
+router.post("/district_send_data", modalprotect,districtSendData);
+router.get("/get_district_selected_data", modalprotect,getDistrictSelectedData);
+router.get("/dashboard_statistics", modalprotect,getDashboardStatistics);
+router.get("/student_processing_report", modalprotect,getStudentProcessingReport);
+router.put("/update_district_data", modalprotect,upload.fields([
   { name: 'birthCertificate', maxCount: 1 },
   { name: 'communityCertificate', maxCount: 1 },
   { name: 'aadharCard', maxCount: 1 },
   { name: 'otherCertificate', maxCount: 1 }
 ]), updateDistrictData);
 
-router.put("/update_certificate_verified_status", updateCertificateVerifiedStatus);
+router.put("/update_certificate_verified_status", modalprotect, updateCertificateVerifiedStatus);
 
 
 module.exports = router;

@@ -300,133 +300,137 @@ const getDashboardStatistics = asyncHandler(async (req, res) => {
     }
 
     try {
-        // Total eligible candidates
-        const totalCandidates = await db.Master_11.count({ where: whereCondition });
-
-        // Present count (candidate_status = 1)
-        const presentCount = await db.Master_11.count({
-            where: { ...whereCondition, candidate_status: 1 }
+        // Use a single optimized query with conditional aggregation
+        const tableName = db.Master_11.getTableName();
+        const results = await db.sequelize.query(`
+            SELECT 
+                COUNT(*) as "totalCandidates",
+                SUM(CASE WHEN candidate_status = 1 THEN 1 ELSE 0 END) as "presentCount",
+                SUM(CASE WHEN candidate_status = 4 THEN 1 ELSE 0 END) as "absentCount",
+                SUM(CASE WHEN ph = 1 THEN 1 ELSE 0 END) as "disabledCount",
+                SUM(CASE WHEN "Student_Status" = 1 THEN 1 ELSE 0 END) as "modelSchoolCount",
+                SUM(CASE WHEN "Student_Status" = 2 THEN 1 ELSE 0 END) as "govtSchoolCount"
+            FROM ${tableName}
+            WHERE "selFlg" = 'Y' AND "distFlg" = 'Y'
+            ${districtCode && districtCode !== '00' ? `AND "Cen_Code" = '${districtCode}'` : ''}
+        `, { 
+            type: db.Sequelize.QueryTypes.SELECT 
         });
 
-        // Absent count (candidate_status = 4)
-        const absentCount = await db.Master_11.count({
-            where: { ...whereCondition, candidate_status: 4 }
-        });
+        const stats = results && results[0] ? results[0] : {
+            totalCandidates: 0,
+            presentCount: 0,
+            absentCount: 0,
+            disabledCount: 0,
+            modelSchoolCount: 0,
+            govtSchoolCount: 0
+        };
 
-        // Disabled candidates (ph = 1)
-        const disabledCount = await db.Master_11.count({
-            where: { ...whereCondition, ph: 1 }
-        });
-
-        // Community distribution
-        const communityDistribution = await db.Master_11.findAll({
-            attributes: [
-                'com',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('com')), 'count']
-            ],
-            where: whereCondition,
-            group: ['com'],
-            raw: true
-        });
-
-        // Gender distribution
-        const genderDistribution = await db.Master_11.findAll({
-            attributes: [
-                'sex',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('sex')), 'count']
-            ],
-            where: whereCondition,
-            group: ['sex'],
-            raw: true
-        });
-
-        // School type distribution
-        const schoolTypeDistribution = await db.Master_11.findAll({
-            attributes: [
-                'school_type',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('school_type')), 'count']
-            ],
-            where: whereCondition,
-            group: ['school_type'],
-            raw: true
-        });
-
-        // Category distribution
-        const categoryDistribution = await db.Master_11.findAll({
-            attributes: [
-                'category',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('category')), 'count']
-            ],
-            where: whereCondition,
-            group: ['category'],
-            raw: true
-        });
-
-        // Candidate status breakdown
-        const candidatesByStatus = await db.Master_11.findAll({
-            attributes: [
-                'candidate_status',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('candidate_status')), 'count']
-            ],
-            where: whereCondition,
-            group: ['candidate_status'],
-            raw: true
-        });
-
-        // Management distribution
-        const managementDistribution = await db.Master_11.findAll({
-            attributes: [
-                'management',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('management')), 'count']
-            ],
-            where: whereCondition,
-            group: ['management'],
-            raw: true
-        });
-
-        // Student Status distribution (1=Model School, 2=Government School)
-        const studentStatusDistribution = await db.Master_11.findAll({
-            attributes: [
-                'Student_Status',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('Student_Status')), 'count']
-            ],
-            where: whereCondition,
-            group: ['Student_Status'],
-            raw: true
-        });
-
-        // Count for Model School and Government School
-        const modelSchoolCount = await db.Master_11.count({
-            where: { ...whereCondition, Student_Status: 1 }
-        });
-
-        const govtSchoolCount = await db.Master_11.count({
-            where: { ...whereCondition, Student_Status: 2 }
-        });
-
-        // District-wise present count (candidate_status = 1)
-        const districtWisePresentCount = await db.Master_11.findAll({
-            attributes: [
-                'Cen_Code',
-                'district_name',
-                [db.Sequelize.fn('COUNT', db.Sequelize.col('Cen_Code')), 'count']
-            ],
-            where: { selFlg: 'Y', distFlg: 'Y', candidate_status: 1 }, // Only present candidates sent to district
-            group: ['Cen_Code', 'district_name'],
-            order: [[db.Sequelize.literal('count'), 'DESC']],
-            raw: true
-        });
+        // Get all grouped distributions in parallel
+        const [
+            communityDistribution,
+            genderDistribution,
+            schoolTypeDistribution,
+            categoryDistribution,
+            candidatesByStatus,
+            managementDistribution,
+            studentStatusDistribution,
+            districtWisePresentCount
+        ] = await Promise.all([
+            // Community distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'com',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('com')), 'count']
+                ],
+                where: whereCondition,
+                group: ['com'],
+                raw: true
+            }),
+            // Gender distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'sex',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('sex')), 'count']
+                ],
+                where: whereCondition,
+                group: ['sex'],
+                raw: true
+            }),
+            // School type distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'school_type',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('school_type')), 'count']
+                ],
+                where: whereCondition,
+                group: ['school_type'],
+                raw: true
+            }),
+            // Category distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'category',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('category')), 'count']
+                ],
+                where: whereCondition,
+                group: ['category'],
+                raw: true
+            }),
+            // Candidate status breakdown
+            db.Master_11.findAll({
+                attributes: [
+                    'candidate_status',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('candidate_status')), 'count']
+                ],
+                where: whereCondition,
+                group: ['candidate_status'],
+                raw: true
+            }),
+            // Management distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'management',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('management')), 'count']
+                ],
+                where: whereCondition,
+                group: ['management'],
+                raw: true
+            }),
+            // Student Status distribution
+            db.Master_11.findAll({
+                attributes: [
+                    'Student_Status',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('Student_Status')), 'count']
+                ],
+                where: whereCondition,
+                group: ['Student_Status'],
+                raw: true
+            }),
+            // District-wise present count
+            db.Master_11.findAll({
+                attributes: [
+                    'Cen_Code',
+                    'district_name',
+                    [db.Sequelize.fn('COUNT', db.Sequelize.col('Cen_Code')), 'count']
+                ],
+                where: { selFlg: 'Y', distFlg: 'Y', candidate_status: 1 },
+                group: ['Cen_Code', 'district_name'],
+                order: [[db.Sequelize.literal('count'), 'DESC']],
+                raw: true
+            })
+        ]);
 
         // Format data for response
         res.json({
             status: 'success',
             data: {
-                totalCandidates,
-                presentCount,
-                absentCount,
-                disabledCount,
-                modelSchoolCount,
-                govtSchoolCount,
+                totalCandidates: parseInt(stats.totalCandidates) || 0,
+                presentCount: parseInt(stats.presentCount) || 0,
+                absentCount: parseInt(stats.absentCount) || 0,
+                disabledCount: parseInt(stats.disabledCount) || 0,
+                modelSchoolCount: parseInt(stats.modelSchoolCount) || 0,
+                govtSchoolCount: parseInt(stats.govtSchoolCount) || 0,
                 districtWisePresentCount: districtWisePresentCount.map(item => ({
                     districtCode: item.Cen_Code,
                     districtName: item.district_name || `District ${item.Cen_Code}`,
