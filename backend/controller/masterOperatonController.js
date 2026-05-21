@@ -291,12 +291,15 @@ const updateDistrictData = asyncHandler(async (req, res) => {
 const getDashboardStatistics = asyncHandler(async (req, res) => {
     const { districtCode } = req.query;
 
-    // Build where condition - filter by selFlg = 'Y' (eligible candidates) AND distFlg = 'Y' (sent to district)
-    const whereCondition = { selFlg: 'Y', distFlg: 'Y' };
+    // Build where condition - filter by selFlg = 'Y' (eligible candidates)
+    // For State Dashboard (districtCode = '00' or not provided): only selFlg = 'Y'
+    // For District Dashboard (specific district): selFlg = 'Y' AND distFlg = 'Y'
+    const whereCondition = { selFlg: 'Y' };
 
     // Add district filter if provided and not '00' (all districts)
     if (districtCode && districtCode !== '00') {
         whereCondition.Cen_Code = districtCode;
+        whereCondition.distFlg = 'Y'; // Only add distFlg for District Dashboard
     }
 
     try {
@@ -405,13 +408,20 @@ const getDashboardStatistics = asyncHandler(async (req, res) => {
         });
 
         // District-wise present count (candidate_status = 1)
+        // For State Dashboard: show all eligible candidates (selFlg = 'Y' only)
+        // For District Dashboard: show only candidates sent to district (selFlg = 'Y' AND distFlg = 'Y')
+        const districtWiseWhereCondition = { selFlg: 'Y', candidate_status: 1 };
+        if (districtCode && districtCode !== '00') {
+            districtWiseWhereCondition.distFlg = 'Y';
+        }
+        
         const districtWisePresentCount = await db.Master_11.findAll({
             attributes: [
                 'Cen_Code',
                 'district_name',
                 [db.Sequelize.fn('COUNT', db.Sequelize.col('Cen_Code')), 'count']
             ],
-            where: { selFlg: 'Y', distFlg: 'Y', candidate_status: 1 }, // Only present candidates sent to district
+            where: districtWiseWhereCondition,
             group: ['Cen_Code', 'district_name'],
             order: [[db.Sequelize.literal('count'), 'DESC']],
             raw: true
@@ -474,8 +484,10 @@ const getDashboardStatistics = asyncHandler(async (req, res) => {
 const getStudentProcessingReport = asyncHandler(async (req, res) => {
     const { districtCode, candidateStatus, schoolType } = req.query;
 
-    // Build where condition - filter by selFlg = 'Y' (eligible candidates) AND distFlg = 'Y' (sent to district)
-    const whereCondition = { selFlg: 'Y', distFlg: 'Y' };
+    // Build where condition - filter by selFlg = 'Y' (eligible candidates)
+    // For State view: only selFlg = 'Y'
+    // For District view: selFlg = 'Y' AND distFlg = 'Y' (sent to district)
+    const whereCondition = { selFlg: 'Y' };
 
     console.log("Received filters - District Code:", districtCode, "Candidate Status:", candidateStatus, "School Type:", schoolType);
     
@@ -489,6 +501,7 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
     // Add district filter if provided and not '00' or 'all'
     if (districtCode && districtCode !== '00' && districtCode !== 'all') {
         whereCondition.Cen_Code = districtCode;
+        whereCondition.distFlg = 'Y'; // Only add distFlg for specific district view
     }
 
     // Add candidate status filter if provided (skip for '5' as it's handled above)
@@ -558,7 +571,7 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
                 [db.Sequelize.fn('DISTINCT', db.Sequelize.col('Cen_Code')), 'Cen_Code'],
                 'district_name'
             ],
-            where: { selFlg: 'Y', distFlg: 'Y' },
+            where: { selFlg: 'Y' },
             order: [['Cen_Code', 'ASC']],
             raw: true
         });
