@@ -112,6 +112,7 @@ const Student_processing_data_report = () => {
     { value: '4', label: 'Absent', icon: FaUserTimes, variant: 'danger', count: summary.absentCount || 0 },
     { value: '2', label: 'Not Willing', icon: FaUserSlash, variant: 'warning', count: summary.status2Count || 0 },
     { value: '3', label: 'Not Eligible', icon: FaBan, variant: 'secondary', count: summary.status3Count || 0 },
+    { value: '5', label: 'Head master yet to be checked', icon: FaSchool, variant: 'info', count: summary.status5Count || 0 }
   ];
 
   // Show district column only when "all districts" is selected for state users
@@ -385,6 +386,7 @@ const Student_processing_data_report = () => {
       candidateStatus === '4' ? 'Absent' :
       candidateStatus === '2' ? 'NotWilling' :
       candidateStatus === '3' ? 'NotEligible' : 'All';
+      candidateStatus === '5' ? 'HeadMasterYetToCheck' : statusLabel;
 
     const fileName = `Student_Report_${statusLabel}_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, fileName);
@@ -471,10 +473,11 @@ const Student_processing_data_report = () => {
                 size="lg"
               >
                 <option value="all">All ({summary.totalRecords || 0})</option>
-                <option value="1">✓ Present ({summary.presentCount || 0})</option>
-                <option value="4">✗ Absent ({summary.absentCount || 0})</option>
-                <option value="2">⚠ Not Willing ({summary.status2Count || 0})</option>
-                <option value="3">⊘ Not Eligible ({summary.status3Count || 0})</option>
+                <option value="1">Present ({summary.presentCount || 0})</option>
+                <option value="4"> Absent ({summary.absentCount || 0})</option>
+                <option value="2"> Not Willing ({summary.status2Count || 0})</option>
+                <option value="3"> Not Eligible ({summary.status3Count || 0})</option>
+                <option value="5"> Head master yet to be checked ({summary.status5Count || 0})</option>
               </Form.Select>
             </Form.Group>
           </Col>
@@ -511,6 +514,7 @@ const Student_processing_data_report = () => {
                 <option value="4">✗ Absent ({summary.absentCount || 0})</option>
                 <option value="2">⚠ Not Willing ({summary.status2Count || 0})</option>
                 <option value="3">⊘ Not Eligible ({summary.status3Count || 0})</option>
+                <option value="5"> Head master yet to be checked ({summary.status5Count || 0})</option>
               </Form.Select>
             </Form.Group>
           </Col>

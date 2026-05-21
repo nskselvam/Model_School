@@ -23,7 +23,7 @@ const Master_Data_District = () => {
 
     console.log('District Code for selected data:', userDistrictCode, 'Full User Info:', userInfo);
 
-    const { data, isLoading, error } = useGetDistrictSelectedDataQuery(
+    const { data, isLoading, error, refetch } = useGetDistrictSelectedDataQuery(
         userDistrictCode ? { Centre_Code: userDistrictCode } : undefined,
         { skip: !userDistrictCode }
     );
@@ -356,6 +356,9 @@ const Master_Data_District = () => {
         
         let filtered = data.data;
         
+        // Filter out records where statFlg is 'Y' (already printed)
+        filtered = filtered.filter(item => item.statFlg !== 'Y');
+        
         // Filter by Student Status
         if (selectedStudentStatus) {
             filtered = filtered.filter(item => 
@@ -687,7 +690,7 @@ const Master_Data_District = () => {
     };
 
     // Generate PDF for a single candidate (2 cards per page - landscape A4)
-    const generateSingleCandidatePDF = (row) => {
+    const generateSingleCandidatePDF = async (row) => {
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
@@ -820,7 +823,23 @@ const Master_Data_District = () => {
 
         const filename = `Candidate_${row.Emis_No}_${row.name.replace(/\s+/g, '_')}.pdf`;
         doc.save(filename);
-        toast.success(`PDF generated for ${row.name}!`);
+        
+        // Update statFlg to 'Y' after PDF generation
+        try {
+            await updateDistrictData({
+                Emis_No: row.Emis_No,
+                udise_code: row.udise_code,
+                statFlg: 'Y'
+            }).unwrap();
+            
+            toast.success(`PDF generated for ${row.name}!`);
+            
+            // Refetch data to update the table
+            await refetch();
+        } catch (error) {
+            console.error('Error updating statFlg:', error);
+            toast.warning(`PDF generated but failed to update status: ${error?.data?.message || 'Unknown error'}`);
+        }
     };
 
     // Generate PDF with duplicate content (2 cards per page - landscape A4) - for all candidates

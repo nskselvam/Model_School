@@ -91,7 +91,8 @@ const getDistrictSelectedData = asyncHandler(async (req, res) => {
 
     const whereCondition = { 
         selFlg: 'Y',
-        distFlg: 'Y'
+        distFlg: 'Y',
+        statFlg: 'N' // Only fetch records that have not been processed (statFlg = 'N')
     };
 
     // Add district filter if Centre_Code is provided
@@ -476,13 +477,23 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
     // Build where condition - filter by selFlg = 'Y' (eligible candidates)
     const whereCondition = { selFlg: 'Y' };
 
+    console.log("Received filters - District Code:", districtCode, "Candidate Status:", candidateStatus, "School Type:", schoolType);
+    
+    // Special handling for candidateStatus = 5 (Pending/Not Processed)
+    if(candidateStatus == '5') {
+        whereCondition.candidate_status = 0; // Candidates not yet processed
+        whereCondition.distFlg = 'Y'; // Already sent to district
+    }
+
+    console.log("Constructed where condition:", whereCondition);
+
     // Add district filter if provided and not '00' or 'all'
     if (districtCode && districtCode !== '00' && districtCode !== 'all') {
         whereCondition.Cen_Code = districtCode;
     }
 
-    // Add candidate status filter if provided
-    if (candidateStatus !== undefined && candidateStatus !== 'all') {
+    // Add candidate status filter if provided (skip for '5' as it's handled above)
+    if (candidateStatus !== undefined && candidateStatus !== 'all' && candidateStatus !== '5') {
         whereCondition.candidate_status = parseInt(candidateStatus);
     }
 
@@ -537,7 +548,9 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
         const notProcessedCount = formattedRecords.filter(r => r.candidate_status === 0).length;
         const status2Count = formattedRecords.filter(r => r.candidate_status === 2).length;
         const status3Count = formattedRecords.filter(r => r.candidate_status === 3).length;
+        
 
+        
         // Get unique districts for dropdown
         const uniqueDistricts = await db.Master_11.findAll({
             attributes: [
