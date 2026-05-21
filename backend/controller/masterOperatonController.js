@@ -15,7 +15,7 @@ const getDistrictMasterData = asyncHandler(async (req, res) => {
         where: { selFlg: 'Y' ,
             distFlg: 'N'
         },
-        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name','Student_Status']
+        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name','Student_Status', 'PHONE_NUMBER', 'HOUSE_ADDRESS']
     });
 
     // Format the DOB field to dd-mm-yyyy
@@ -102,7 +102,7 @@ const getDistrictSelectedData = asyncHandler(async (req, res) => {
 
    const masterData = await db.Master_11.findAll({
         where: whereCondition,
-        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name', 'candidate_status', 'candidate_preferences', 'remarks','Student_Status']
+        attributes: ['Emis_No', 'udise_code', 'district_name', 'school_name', 'father_name', 'name', 'com', 'sex', 'pstm', 'dob', 'Zone_Name_Jee', 'Zone_Name_Neet', 'ph', 'Disability_Name', 'candidate_status', 'candidate_preferences', 'remarks','Student_Status', 'PHONE_NUMBER', 'HOUSE_ADDRESS']
     });
 
     // Mapping for preferences
@@ -523,7 +523,9 @@ const getStudentProcessingReport = asyncHandler(async (req, res) => {
                 'Disability_Name',
                 'Zone_Name_Jee',
                 'Zone_Name_Neet',
-                'candidate_preferences'
+                'candidate_preferences',
+                'PHONE_NUMBER',
+                'HOUSE_ADDRESS'
             ],
             where: whereCondition,
             order: [

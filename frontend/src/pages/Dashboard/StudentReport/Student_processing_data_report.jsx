@@ -238,6 +238,20 @@ const Student_processing_data_report = () => {
       width: '120px',
     },
     {
+      name: 'Phone Number',
+      selector: row => row.PHONE_NUMBER || '-',
+      sortable: true,
+      wrap: true,
+      width: '130px',
+    },
+    {
+      name: 'House Address',
+      selector: row => row.HOUSE_ADDRESS || '-',
+      sortable: true,
+      wrap: true,
+      width: '200px',
+    },
+    {
       name: 'Candidate Status',
       selector: row => {
         if (!row.candidate_status || row.candidate_status === 0) return '';
@@ -370,6 +384,8 @@ const Student_processing_data_report = () => {
       baseData['Disability'] = row.ph === 1 ? (row.Disability_Name || 'Yes') : 'No';
       baseData['JEE Zone'] = row.Zone_Name_Jee || '';
       baseData['NEET Zone'] = row.Zone_Name_Neet || '';
+      baseData['Phone Number'] = row.PHONE_NUMBER || '';
+      baseData['House Address'] = row.HOUSE_ADDRESS || '';
       baseData['Candidate Status'] = 
         row.candidate_status === 0 ? 'Not Processed' :
         row.candidate_status === 1 ? 'Present' :

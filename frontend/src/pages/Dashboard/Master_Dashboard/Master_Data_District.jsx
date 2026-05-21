@@ -484,6 +484,20 @@ const Master_Data_District = () => {
             width: '120px'
         },
         {
+            name: 'Phone Number',
+            selector: row => row.PHONE_NUMBER || '-',
+            sortable: true,
+            wrap: true,
+            width: '130px'
+        },
+        {
+            name: 'House Address',
+            selector: row => row.HOUSE_ADDRESS || '-',
+            sortable: true,
+            wrap: true,
+            width: '200px'
+        },
+        {
             name: 'Candidate Status',
             selector: row => {
                 if (!row.candidate_status || row.candidate_status === 0) return '';
@@ -641,6 +655,8 @@ const Master_Data_District = () => {
             'Disability': row.ph === 1 ? (row.Disability_Name || 'Yes') : 'No',
             'JEE Zone': row.Zone_Name_Jee || '',
             'NEET Zone': row.Zone_Name_Neet || '',
+            'Phone Number': row.PHONE_NUMBER || '',
+            'House Address': row.HOUSE_ADDRESS || '',
             'Candidate Status': (() => {
                 const statusMap = { 1: 'Present', 2: 'Not Eligible', 3: 'Not Willing', 4: 'Absent' };
                 return statusMap[row.candidate_status] || '-';
@@ -677,6 +693,8 @@ const Master_Data_District = () => {
             { wch: 15 },  // Disability
             { wch: 15 },  // JEE Zone
             { wch: 15 },  // NEET Zone
+            { wch: 15 },  // Phone Number
+            { wch: 30 },  // House Address
             { wch: 18 },  // Candidate Status
             { wch: 35 }   // Candidate Preferences
         ];

@@ -264,8 +264,17 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: true
       },
+      PHONE_NUMBER: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
+    HOUSE_ADDRESS: {
+        type: DataTypes.STRING(255),
+        allowNull: true
+      },
 
     },
+ 
     {
       tableName: 'master_11',
       timestamps: true,
