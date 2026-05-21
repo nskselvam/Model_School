@@ -35,7 +35,9 @@ const Master_Data_District = () => {
     const [selectedStudentStatus, setSelectedStudentStatus] = useState(1); // 1: Model School (default)
     const [showModal, setShowModal] = useState(false);
     const [showRemarksModal, setShowRemarksModal] = useState(false);
+    const [showPrintConfirmModal, setShowPrintConfirmModal] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
+    const [rowToPrint, setRowToPrint] = useState(null);
     const [formData, setFormData] = useState({});
     const [remarks, setRemarks] = useState("");
     const [validationErrors, setValidationErrors] = useState({});
@@ -599,7 +601,7 @@ const Master_Data_District = () => {
                     {row.candidate_status > 0 && (
                         <Button
                             variant="danger"
-                            onClick={() => generateSingleCandidatePDF(row)}
+                            onClick={() => handlePrintClick(row)}
                             title="Print Candidate Card"
                             style={{
                                 padding: '5px 5px',
@@ -687,6 +689,21 @@ const Master_Data_District = () => {
         const filename = `District_Verified_Data_${timestamp}.xlsx`;
 
         XLSX.writeFile(workbook, filename);
+    };
+
+    // Handle print button click - show confirmation modal
+    const handlePrintClick = (row) => {
+        setRowToPrint(row);
+        setShowPrintConfirmModal(true);
+    };
+
+    // Proceed with PDF generation after confirmation
+    const proceedWithPrint = async () => {
+        setShowPrintConfirmModal(false);
+        if (rowToPrint) {
+            await generateSingleCandidatePDF(rowToPrint);
+            setRowToPrint(null);
+        }
     };
 
     // Generate PDF for a single candidate (2 cards per page - landscape A4)
@@ -2328,6 +2345,160 @@ const Master_Data_District = () => {
                     >
                         <i className="bi bi-check-circle-fill me-2"></i>
                         Save Remarks
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+            {/* Print Confirmation Modal */}
+            <Modal 
+                show={showPrintConfirmModal} 
+                onHide={() => setShowPrintConfirmModal(false)} 
+                size="md" 
+                centered
+                backdrop="static"
+                style={{ zIndex: 1070 }}
+            >
+                <Modal.Header 
+                    closeButton 
+                    style={{
+                        background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                        color: 'white',
+                        borderBottom: 'none',
+                        padding: '20px 30px',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                    }}
+                    className="border-0"
+                >
+                    <Modal.Title style={{ fontSize: '1.5rem', fontWeight: '700' }}>
+                        <i className="bi bi-exclamation-triangle-fill me-3" style={{ fontSize: '1.4rem' }}></i>
+                        Confirm Print Action
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body style={{ 
+                    padding: '30px', 
+                    backgroundColor: '#fff8f8'
+                }}>
+                    <div style={{
+                        backgroundColor: 'white',
+                        borderLeft: '4px solid #dc2626',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                    }}>
+                        <h5 style={{ 
+                            color: '#1f2937', 
+                            fontWeight: '700',
+                            marginBottom: '15px',
+                            fontSize: '1.1rem'
+                        }}>
+                            <i className="bi bi-info-circle-fill me-2" style={{ color: '#dc2626' }}></i>
+                            Important Notice
+                        </h5>
+                        <p style={{ 
+                            color: '#4b5563',
+                            fontSize: '0.95rem',
+                            lineHeight: '1.6',
+                            marginBottom: '12px'
+                        }}>
+                            Once you proceed with printing this candidate card, the following will occur:
+                        </p>
+                        <ul style={{
+                            color: '#4b5563',
+                            fontSize: '0.95rem',
+                            lineHeight: '1.8',
+                            paddingLeft: '25px',
+                            marginBottom: '15px'
+                        }}>
+                            <li style={{ marginBottom: '8px' }}>
+                                <strong>The record will be marked as "Printed"</strong> and moved to the archive.
+                            </li>
+                            <li style={{ marginBottom: '8px' }}>
+                                <strong>No further modifications</strong> can be made to this candidate's information.
+                            </li>
+                            <li>
+                                The candidate will <strong>no longer appear in the editable data list</strong>.
+                            </li>
+                        </ul>
+                        <div style={{
+                            backgroundColor: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            borderRadius: '6px',
+                            padding: '12px 15px',
+                            marginTop: '15px'
+                        }}>
+                            <p style={{ 
+                                color: '#991b1b',
+                                fontSize: '0.9rem',
+                                fontWeight: '600',
+                                margin: 0
+                            }}>
+                                <i className="bi bi-shield-exclamation me-2"></i>
+                                Please ensure all candidate information is correct before proceeding.
+                            </p>
+                        </div>
+                    </div>
+                </Modal.Body>
+                <Modal.Footer style={{ 
+                    borderTop: '2px solid #fee2e2', 
+                    padding: '20px 30px',
+                    backgroundColor: '#ffffff',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                }}>
+                    <Button 
+                        variant="light" 
+                        onClick={() => {
+                            setShowPrintConfirmModal(false);
+                            setRowToPrint(null);
+                        }}
+                        style={{
+                            borderRadius: '8px',
+                            padding: '10px 25px',
+                            fontWeight: '600',
+                            fontSize: '0.95rem',
+                            border: '2px solid #e5e7eb',
+                            backgroundColor: 'white',
+                            color: '#6b7280',
+                            transition: 'all 0.3s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#f9fafb';
+                            e.target.style.borderColor = '#d1d5db';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'white';
+                            e.target.style.borderColor = '#e5e7eb';
+                        }}
+                    >
+                        <i className="bi bi-x-circle me-2"></i>
+                        Cancel
+                    </Button>
+                    <Button 
+                        variant="danger"
+                        onClick={proceedWithPrint}
+                        style={{
+                            background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                            border: 'none',
+                            borderRadius: '8px',
+                            padding: '10px 25px',
+                            fontWeight: '700',
+                            fontSize: '0.95rem',
+                            transition: 'all 0.3s ease',
+                            boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)',
+                            color: 'white'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.target.style.transform = 'translateY(-2px)';
+                            e.target.style.boxShadow = '0 6px 20px rgba(220, 38, 38, 0.4)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.target.style.transform = 'translateY(0)';
+                            e.target.style.boxShadow = '0 4px 15px rgba(220, 38, 38, 0.3)';
+                        }}
+                    >
+                        <i className="bi bi-printer-fill me-2"></i>
+                        Yes, Print Card
                     </Button>
                 </Modal.Footer>
             </Modal>

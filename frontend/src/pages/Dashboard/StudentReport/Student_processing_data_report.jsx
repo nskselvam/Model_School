@@ -52,7 +52,7 @@ const Student_processing_data_report = () => {
 
   // Get user info from Redux state
   const { userInfo } = useSelector((state) => state.auth);
-  const userDistrictCode = userInfo?.district || '00';
+  const userDistrictCode = userInfo?.D_Code || '00';
   const userRole = String(userInfo?.Role || '1'); // Convert to string for comparison
   // State-level users can be determined by role OR district code "00"
   const isStateUser = userDistrictCode === '00' || userRole === '0' || userRole === '2' || userRole === '5';
@@ -84,6 +84,8 @@ const Student_processing_data_report = () => {
   const [candidateStatus, setCandidateStatus] = useState('all'); // all, 1=present, 4=absent, 2=not willing, 3=not eligible
 
   const [schoolType, setSchoolType] = useState('all'); // all, 1=Model School, 2=Government School
+  
+  const [searchText, setSearchText] = useState('');
 
   // Determine which district to query
   const queryDistrictCode = isStateUser ? selectedDistrict : userDistrictCode;
@@ -97,6 +99,23 @@ const Student_processing_data_report = () => {
 
   const studentRecords = reportData?.data || [];
   const summary = reportData?.summary || {};
+
+  // Filter data based on search text
+  const filteredStudentRecords = useMemo(() => {
+    if (!searchText) return studentRecords;
+    
+    const searchLower = searchText.toLowerCase();
+    return studentRecords.filter(record => {
+      return (
+        record.Emis_No?.toLowerCase().includes(searchLower) ||
+        record.udise_code?.toLowerCase().includes(searchLower) ||
+        record.school_name?.toLowerCase().includes(searchLower) ||
+        record.name?.toLowerCase().includes(searchLower) ||
+        record.father_name?.toLowerCase().includes(searchLower) ||
+        record.district_name?.toLowerCase().includes(searchLower)
+      );
+    });
+  }, [studentRecords, searchText]);
 
   // Get selected district name for display
   const selectedDistrictName = useMemo(() => {
@@ -328,8 +347,9 @@ const Student_processing_data_report = () => {
   ];
 
   // Export to Excel with all columns
+  // Export to Excel with all columns
   const exportToExcel = () => {
-    const exportData = studentRecords.map((row, index) => {
+    const exportData = filteredStudentRecords.map((row, index) => {
       const baseData = {
         'S.No': index + 1,
         'EMIS No': row.Emis_No,
@@ -534,7 +554,7 @@ const Student_processing_data_report = () => {
           <Button 
             variant="success" 
             onClick={exportToExcel}
-            disabled={studentRecords.length === 0}
+            disabled={filteredStudentRecords.length === 0}
             className="d-flex align-items-center gap-2"
           >
             <FaFileExcel /> Export to Excel
@@ -542,12 +562,32 @@ const Student_processing_data_report = () => {
         </Col>
       </Row>
 
+      {/* Search Bar */}
+      <Row className="mb-3">
+        <Col md={6}>
+          <Form.Control
+            type="text"
+            placeholder="Search by EMIS, UDISE, School, Student Name..."
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            size="lg"
+          />
+        </Col>
+        {searchText && (
+          <Col md={6} className="d-flex align-items-center">
+            <span className="text-muted">
+              Showing {filteredStudentRecords.length} of {studentRecords.length} records
+            </span>
+          </Col>
+        )}
+      </Row>
+
       {/* Data Table */}
       <Card>
         <Card.Body>
           <DataTable
             columns={columns}
-            data={studentRecords}
+            data={filteredStudentRecords}
             pagination
             paginationPerPage={25}
             paginationRowsPerPageOptions={[10, 25, 50, 100]}
@@ -557,7 +597,9 @@ const Student_processing_data_report = () => {
             dense
             noDataComponent={
               <div className="text-center py-4">
-                <p className="text-muted">No students found for the selected filters</p>
+                <p className="text-muted">
+                  {searchText ? `No students found matching "${searchText}"` : 'No students found for the selected filters'}
+                </p>
               </div>
             }
           />
