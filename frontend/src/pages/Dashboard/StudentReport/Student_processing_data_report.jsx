@@ -129,12 +129,13 @@ const Student_processing_data_report = () => {
     return district ? district.DNAME : selectedDistrict;
   }, [isStateUser, selectedDistrict, allDistricts, userInfo, userDistrictCode]);
 
+
   // Status button configurations
   const statusButtons = [
     { value: '1', label: 'Present', icon: FaUserCheck, variant: 'success', count: summary.presentCount || 0 },
     { value: '4', label: 'Absent', icon: FaUserTimes, variant: 'danger', count: summary.absentCount || 0 },
-    { value: '2', label: 'Not Willing', icon: FaUserSlash, variant: 'warning', count: summary.status2Count || 0 },
-    { value: '3', label: 'Not Eligible', icon: FaBan, variant: 'secondary', count: summary.status3Count || 0 },
+    { value: '3', label: 'Not Willing', icon: FaUserSlash, variant: 'warning', count: summary.status2Count || 0 },
+    { value: '2', label: 'Not Eligible', icon: FaBan, variant: 'secondary', count: summary.status3Count || 0 },
     { value: '5', label: 'Head master yet to be checked', icon: FaSchool, variant: 'info', count: summary.status5Count || 0 }
   ];
 
@@ -171,6 +172,13 @@ const Student_processing_data_report = () => {
       wrap: true,
       width: '120px',
     }] : []),
+    {
+      name:'School Type',
+      selector: row => row.Student_Status === 1 ? 'Model School' : row.Student_Status === 2 ? 'Government School' : 'Other',
+      sortable: true,
+      wrap: true,
+      width: '150px',
+    },
     {
       name: 'School Name',
       selector: row => row.school_name,
@@ -272,10 +280,11 @@ const Student_processing_data_report = () => {
         }
         const statusMap = {
           1: { label: 'Present', bg: '#dcfce7', color: '#15803d' },
-          2: { label: 'Not Willing', bg: '#fff3cd', color: '#856404' },
-          3: { label: 'Not Eligible', bg: '#fef3c7', color: '#a16207' },
+          3: { label: 'Not Willing', bg: '#fff3cd', color: '#856404' },
+          2: { label: 'Not Eligible', bg: '#fef3c7', color: '#a16207' },
           4: { label: 'Absent', bg: '#e5e7eb', color: '#4b5563' }
         };
+
         const status = statusMap[row.candidate_status];
         if (!status) return <span style={{ color: '#9ca3af' }}>-</span>;
         return (
@@ -389,9 +398,11 @@ const Student_processing_data_report = () => {
       baseData['Candidate Status'] = 
         row.candidate_status === 0 ? 'Not Processed' :
         row.candidate_status === 1 ? 'Present' :
-        row.candidate_status === 2 ? 'Not Willing' :
-        row.candidate_status === 3 ? 'Not Eligible' :
+        row.candidate_status === 3 ? 'Not Willing' :
+        row.candidate_status === 2 ? 'Not Eligible' :
         row.candidate_status === 4 ? 'Absent' : 'Unknown';
+
+  
       
       // Add preferences only if candidate is Present
       if (row.candidate_status === 1 && row.candidate_preferences) {
@@ -400,6 +411,7 @@ const Student_processing_data_report = () => {
       } else {
         baseData['Candidate Preferences'] = '-';
       }
+      baseData['School Type'] = row.Student_Status === 1 ? 'Model School' : row.Student_Status === 2 ? 'Government School' : 'Other';
 
       return baseData;
     });
@@ -424,8 +436,8 @@ const Student_processing_data_report = () => {
     const statusLabel = 
       candidateStatus === '1' ? 'Present' :
       candidateStatus === '4' ? 'Absent' :
-      candidateStatus === '2' ? 'NotWilling' :
-      candidateStatus === '3' ? 'NotEligible' : 'All';
+      candidateStatus === '3' ? 'NotWilling' :
+      candidateStatus === '2' ? 'NotEligible' : 'All';
       candidateStatus === '5' ? 'HeadMasterYetToCheck' : statusLabel;
 
     const fileName = `Student_Report_${statusLabel}_${new Date().toISOString().split('T')[0]}.xlsx`;
@@ -515,14 +527,15 @@ const Student_processing_data_report = () => {
                 <option value="all">All ({summary.totalRecords || 0})</option>
                 <option value="1">Present ({summary.presentCount || 0})</option>
                 <option value="4"> Absent ({summary.absentCount || 0})</option>
-                <option value="2"> Not Willing ({summary.status2Count || 0})</option>
-                <option value="3"> Not Eligible ({summary.status3Count || 0})</option>
+                <option value="3"> Not Willing ({summary.status3Count || 0})</option>
+                <option value="2"> Not Eligible ({summary.status2Count || 0})</option>
                 <option value="5"> Head master yet to be checked ({summary.status5Count || 0})</option>
               </Form.Select>
             </Form.Group>
           </Col>
         </Row>
       )}
+
 
       {/* Filters Row - District Users Only */}
       {!isStateUser && (
@@ -552,14 +565,15 @@ const Student_processing_data_report = () => {
                 <option value="all">All ({summary.totalRecords || 0})</option>
                 <option value="1">✓ Present ({summary.presentCount || 0})</option>
                 <option value="4">✗ Absent ({summary.absentCount || 0})</option>
-                <option value="2">⚠ Not Willing ({summary.status2Count || 0})</option>
-                <option value="3">⊘ Not Eligible ({summary.status3Count || 0})</option>
+                <option value="3">⚠ Not Willing ({summary.status2Count || 0})</option>
+                <option value="2">⊘ Not Eligible ({summary.status3Count || 0})</option>
                 <option value="5"> Head master yet to be checked ({summary.status5Count || 0})</option>
               </Form.Select>
             </Form.Group>
           </Col>
         </Row>
       )}
+
 
       {/* Action Buttons */}
       <Row className="mb-3">

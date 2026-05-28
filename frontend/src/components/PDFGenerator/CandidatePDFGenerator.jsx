@@ -66,10 +66,12 @@ export const generateCandidatePDF = (row) => {
   // Get candidate status
   const statusMap = { 
     1: 'Present', 
-    2: 'Not Willing',
-    3: 'Not Eligible',
+    3: 'Not Willing',
+    2: 'Not Eligible',
     4: 'Absent' 
   };
+                
+
   const statusText = statusMap[row.candidate_status] || 'Not Processed';
 
   let yPos = 25;
